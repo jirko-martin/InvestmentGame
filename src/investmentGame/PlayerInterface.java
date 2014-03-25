@@ -1,0 +1,30 @@
+package investmentGame;
+
+import javax.swing.*;
+
+/**
+ * Created with IntelliJ IDEA.
+ * User: martin
+ * Date: 23/03/14
+ * Time: 11:11
+ * To change this template use File | Settings | File Templates.
+ */
+public interface PlayerInterface{
+
+    public Transaction transferA(PlayerInterface recipient,double credits);
+
+    public Transaction transferB(PlayerInterface recipient,double credits);
+
+    public void setCreditBalance(double balance);
+
+    public double getCreditBalance();
+
+    public String getPlayersName();
+
+    public ImageIcon getPicture();
+
+    public String getStringDescription();
+
+    public JPanel getGUIView();
+
+}
