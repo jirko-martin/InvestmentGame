@@ -1,6 +1,7 @@
 package investmentGame;
 
 import javax.swing.*;
+import java.awt.*;
 
 /**
  * Created with IntelliJ IDEA.
@@ -21,10 +22,16 @@ public interface PlayerInterface{
 
     public String getPlayersName();
 
-    public ImageIcon getPicture();
+    public String getPicturePath();
 
     public String getStringDescription();
 
     public JPanel getGUIView();
+
+    public Image getScaledPicture(int width);
+
+    public Game getGame();
+
+    public void setSelectable(boolean selectable);
 
 }

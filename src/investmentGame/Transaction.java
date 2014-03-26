@@ -32,11 +32,19 @@ public class Transaction {
         return sender;
     }
 
+    public void setSender(PlayerInterface sender){
+        this.sender = sender;
+    }
+
     public PlayerInterface getRecipient() {
         return recipient;
     }
 
     public double getCreditsTransferred() {
         return creditsTransferred;
+    }
+
+    public String toString(){
+        return "Transaction[ from = ("+sender+") , to = ("+recipient+") , amount = ("+creditsTransferred+") ]";
     }
 }

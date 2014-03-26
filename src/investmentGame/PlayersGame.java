@@ -74,7 +74,7 @@ public class PlayersGame extends Game{
                 g.transform(at);
 
                 // Draw horizontal arrow starting in (0, 0)
-                g.setStroke(new BasicStroke(3,BasicStroke.CAP_ROUND,BasicStroke.JOIN_ROUND));
+                g.setStroke(new BasicStroke(5,BasicStroke.CAP_ROUND,BasicStroke.JOIN_ROUND));
                 g.setColor(color);
                 g.drawLine(0, 0, len, 0);
                 g.fillPolygon(new int[]{len, len - ARR_SIZE, len - ARR_SIZE, len},
@@ -99,7 +99,9 @@ public class PlayersGame extends Game{
 
                 g.setTransform(new AffineTransform());
 
-                g.drawString(""+credits,x2,y2);
+                g.setFont(new Font(Font.SANS_SERIF,Font.BOLD,20));
+
+                g.drawString(""+((int)credits),x2,y2);
 
             }
 
@@ -108,7 +110,13 @@ public class PlayersGame extends Game{
                 super.paintComponent(g);
 
                 if (transaction!=null){
+
                     Rectangle r1 = transaction.getSender().getGUIView().getBounds();
+
+                    System.err.println("r1="+r1);
+
+                    System.err.println("transaction ... " + transaction);
+
                     Rectangle r2 = transaction.getRecipient().getGUIView().getBounds();
                     
                     Point[] ps1 = {
@@ -155,6 +163,7 @@ public class PlayersGame extends Game{
 
             public void showTransaction(Transaction t){
                 transaction = t;
+                this.validate();
                 this.repaint();
 
             }
@@ -176,10 +185,25 @@ public class PlayersGame extends Game{
 
             panel.setBackground(Color.WHITE);
 
-            Iterator<PlayerInterface> playerInterfaceIterator = getPlayers().iterator();
+            ArrayList<PlayerInterface> players = new ArrayList<PlayerInterface>(getPlayers());
 
-            while (playerInterfaceIterator.hasNext()){
-                panel.add(playerInterfaceIterator.next().getGUIView());
+            if (players.size()==2){
+
+                panel.add(new JPanel());
+
+                panel.add(players.get(0).getGUIView());
+
+                panel.add(new JPanel());
+
+                panel.add(players.get(1).getGUIView());
+
+            }else{
+
+                Iterator<PlayerInterface> playerInterfaceIterator = getPlayers().iterator();
+
+                while (playerInterfaceIterator.hasNext()){
+                    panel.add(playerInterfaceIterator.next().getGUIView());
+                }
             }
 
             return panel;
@@ -193,12 +217,21 @@ public class PlayersGame extends Game{
         this.playersSelf = playersSelf;
     }
 
-    protected void acknowledgeTransaction(Transaction t){
-        getPlayersSelf().pauseAWhile(2000);
-        getPlayersSelf().sendMessageWithRole(
-                playersSelf.getAgentWithRole("investment_game", getGameId(), "coordinator"),
-                new ActMessage((t.getType()==Transaction.TYPE_A?"processed_transfer_A":"processed_transfer_B"),getPlayersSelf().getPlayersName()),
-                "player");
+    protected void acknowledgeTransaction(final Transaction t){
+        //getPlayersSelf().pauseAWhile(2000);
+        new Thread(){
+            public void run(){
+                try{Thread.sleep(2000);}catch(InterruptedException ie){}
+                getPlayersSelf().sendMessageWithRole(
+                        playersSelf.getAgentWithRole("investment_game", getGameId(), "coordinator"),
+                        new ActMessage((t.getType()==Transaction.TYPE_A?"processed_transfer_A":"processed_transfer_B"),getPlayersSelf().getPlayersName()),
+                        "player");
+            }
+        }.start();
+//        getPlayersSelf().sendMessageWithRole(
+//                playersSelf.getAgentWithRole("investment_game", getGameId(), "coordinator"),
+//                new ActMessage((t.getType()==Transaction.TYPE_A?"processed_transfer_A":"processed_transfer_B"),getPlayersSelf().getPlayersName()),
+//                "player");
     }
 
     private void initializeGameStates(){
@@ -227,12 +260,12 @@ public class PlayersGame extends Game{
                         if (message.getAction().equals("game_starts")){
                             game.getPlayersSelf().getLogger().log(Level.INFO,"  --->  (0) PLAYER "+game.getPlayersSelf().getPlayersName()+message.getContent());
                             String[] playerInfos = message.getContent().split("##");
-                            Pattern playerInfoPattern = Pattern.compile("<player>\\s+([^<>\\s]+)\\s+<has>\\s+(\\d+)\\s+<credits>");
+                            Pattern playerInfoPattern = Pattern.compile("<player>\\s+([^<>\\s]+)\\s+<has>\\s+(\\d+)\\s+<credits>\\s+<and_looks_like>\\s+(.+)");
                             for (int i=0;i<playerInfos.length;i++){
                                 Matcher m = playerInfoPattern.matcher(playerInfos[i]);
                                 if (m.matches()){
-                                    game.getPlayersSelf().getLogger().log(Level.INFO,"  --->  PLAYER "+game.getPlayersSelf().getPlayersName()+" add model player "+m.group(1));
-                                    ModelPlayer player = new ModelPlayer(m.group(1),null);
+                                    game.getPlayersSelf().getLogger().log(Level.INFO,"  --->  PLAYER "+game.getPlayersSelf().getPlayersName()+" add model player "+m.group(1)+" / "+m.group(3));
+                                    ModelPlayer player = new PlayersModelPlayer(game,m.group(1),m.group(3));
                                     //player.setCreditBalance(Double.parseDouble(m.group(2)));
                                     game.addPlayer(player);
                                     game.getPlayer(m.group(1)).setCreditBalance(Double.parseDouble(m.group(2)));
@@ -512,4 +545,16 @@ public class PlayersGame extends Game{
             gui.showTransaction(t);
         return t;
     }
+
+    public void enableModeSelectPlayer(boolean enable){
+        Iterator<PlayerInterface> playerInterfaceIterator = getPlayers().iterator();
+        while (playerInterfaceIterator.hasNext()){
+            playerInterfaceIterator.next().setSelectable(enable);
+        }
+    }
+
+    public void selectPlayer(PlayerInterface player){
+        playersSelf.selectPlayer(player);
+    }
+
 }

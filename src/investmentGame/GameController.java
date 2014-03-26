@@ -15,9 +15,9 @@ public class GameController {
 
         new Madkit(
                 Madkit.Option.launchAgents.toString(),
-                Coordinator.class.getName() + ",true,1;"
-                + ComputerPlayer.class.getName() + ",true,1;"
-//                JeromesAssistant.class.getName() + ",true,1;"
+//                Coordinator.class.getName() + ",true,1;"
+//                + ComputerPlayer.class.getName() + ",true,1;"
+               JeromesAssistant.class.getName() + ",true,1;"
         );
 
     }

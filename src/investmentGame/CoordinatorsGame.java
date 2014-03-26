@@ -27,6 +27,8 @@ public class CoordinatorsGame extends Game{
     protected PlayerInterface playerAtTurnA;
     protected PlayerInterface playerAtTurnB;
 
+    protected PlayerInterface primaryPlayer;
+
     public final Map<String,GameState<CoordinatorsGame>> gameStates = new HashMap<String, GameState<CoordinatorsGame>>();
 
     public CoordinatorsGame(Coordinator coordinator,String gameId, int numberOfPlayersTotal,int numberOfRoundsTotal) {
@@ -305,7 +307,6 @@ public class CoordinatorsGame extends Game{
 
                         game.getCoordinator().getLogger().log(Level.INFO,"\n\nAND THE WINNER IS ... "+playersRanked.get(0).getPlayersName()+" ("+playersRanked.get(0).getCreditBalance()+" credits)");
                         game.getCoordinator().getLogger().log(Level.INFO,"THE SECOND PRICE  ... "+playersRanked.get(1).getPlayersName()+" ("+playersRanked.get(1).getCreditBalance()+" credits)");
-                        game.getCoordinator().getLogger().log(Level.INFO,"THE THIRD PRICE   ... "+playersRanked.get(2).getPlayersName()+" ("+playersRanked.get(2).getCreditBalance()+" credits)\n\n");
                         game.getCoordinator().broadcastMessageWithRole("investment_game", game.getGameId(), "player", new ActMessage("game_over"), "coordinator");
                     }
 
@@ -342,8 +343,14 @@ public class CoordinatorsGame extends Game{
     }
 
     public PlayerInterface selectPlayer(){
-        ArrayList<PlayerInterface> playersList = new ArrayList<PlayerInterface>(players.values());
-        return playersList.get((int)Math.round(Math.random()*(playersList.size()-1)));
+
+        if (playerAtTurnB!=null)
+            return playerAtTurnB;
+        else
+            return primaryPlayer;
+
+//        ArrayList<PlayerInterface> playersList = new ArrayList<PlayerInterface>(players.values());
+//        return playersList.get((int)Math.round(Math.random()*(playersList.size()-1)));
     }
 
     public int getNumberOfRoundsTotal() {
@@ -357,5 +364,11 @@ public class CoordinatorsGame extends Game{
 
     public boolean hasNextRound(){
         return numberOfRoundsPassed<numberOfRoundsTotal;
+    }
+
+    public void addPlayer(PlayerInterface player,boolean asPrimaryPlayer) {
+        super.addPlayer(player);
+        if (asPrimaryPlayer)
+            primaryPlayer = player;
     }
 }

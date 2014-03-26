@@ -1,7 +1,13 @@
 package investmentGame;
 
 import javax.swing.*;
+import javax.swing.border.LineBorder;
+import javax.swing.border.SoftBevelBorder;
+import javax.swing.plaf.metal.MetalBorders;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.logging.Level;
 
 /**
  * Created with IntelliJ IDEA.
@@ -10,18 +16,22 @@ import java.awt.*;
  * Time: 11:15
  * To change this template use File | Settings | File Templates.
  */
-public class ModelPlayer implements PlayerInterface{
+public class ModelPlayer<GameType extends Game> implements PlayerInterface{
+
+    private GameType game;
 
     private String name;
-    private ImageIcon picture;
+    private String picturePath;
 
     private double creditBalance;
 
     private GUI gui;
 
+    private Image picture;
 
+    protected boolean selectable = false;
 
-    public class GUI{
+    private class GUI{
 
         JLabel playersName;
         JLabel creditBalance;
@@ -29,7 +39,7 @@ public class ModelPlayer implements PlayerInterface{
         JPanel panel;
 
         public GUI(){
-            playersName = new JLabel(getPlayersName());
+            playersName = getPicturePath()!=null ? new JLabel(getPlayersName(),new ImageIcon(getScaledPicture(110)),JLabel.LEFT) : new JLabel(getPlayersName());
             creditBalance = new JLabel(""+getCreditBalance());
             creditBalance.setFont(new Font(Font.SANS_SERIF, Font.ITALIC, 20));
             creditBalance.setForeground(Color.BLUE);
@@ -43,13 +53,20 @@ public class ModelPlayer implements PlayerInterface{
             if (panel==null){
                 panel = new JPanel(new BorderLayout());
 
+                panel.setBackground(Color.WHITE);
+
+                panel.setBorder(new LineBorder(new Color(218, 255, 113), 5));
+
                 panel.add(playersName,BorderLayout.NORTH);
 
                 JPanel accountPanel = new JPanel(new BorderLayout());
+                creditBalance.setBackground(Color.WHITE);
+                accountPanel.setBackground(Color.WHITE);
 
                 accountPanel.add(creditBalance,BorderLayout.CENTER);
 
                 panel.add(accountPanel,BorderLayout.EAST);
+
             }
 
             return panel;
@@ -70,9 +87,10 @@ public class ModelPlayer implements PlayerInterface{
         }
     }
 
-    public ModelPlayer(String name, ImageIcon picture) {
+    public ModelPlayer(GameType game,String name, String picturePath) {
+        this.game =  game;
         this.name = name;
-        this.picture = picture;
+        this.picturePath = picturePath;
     }
 
     @Override
@@ -91,7 +109,7 @@ public class ModelPlayer implements PlayerInterface{
 
     @Override
     public void setCreditBalance(double balance) {
-
+        System.err.println(game.agent.toString()+" : enter ModelPlayer.setCreditBalance for "+getPlayersName());
         if (balance<0){
             throw new OverdrawnException(balance);
         }
@@ -99,8 +117,10 @@ public class ModelPlayer implements PlayerInterface{
         this.creditBalance = balance;
 
         if (gui != null){
+            System.err.println(game.agent.toString()+" : update ModelPlayer.setCreditBalance for "+getPlayersName());
             gui.update();
         }
+        System.err.println(game.agent.toString()+" : exit ModelPlayer.setCreditBalance for "+getPlayersName());
     }
 
     @Override
@@ -114,17 +134,19 @@ public class ModelPlayer implements PlayerInterface{
     }
 
     @Override
-    public ImageIcon getPicture() {
-        return picture;
+    public String getPicturePath() {
+        return picturePath;
     }
 
     @Override
     public String getStringDescription() {
-        return "<player> "+getPlayersName()+" <has> "+((int)getCreditBalance())+" <credits>";
+        return "<player> "+getPlayersName()+" <has> "+((int)getCreditBalance())+" <credits> <and_looks_like> "+getPicturePath();
     }
 
     @Override
     public JPanel getGUIView() {
+
+        game.agent.getLogger().log(Level.INFO,"getGUIView() (ModelPlayer) on "+getPlayersName());
 
         if (gui == null){
             gui = new GUI();
@@ -132,6 +154,27 @@ public class ModelPlayer implements PlayerInterface{
 
         return gui.getPanel();
 
+    }
+
+    @Override
+    public Image getScaledPicture(int width) {
+        if (picture == null)
+            picture = new ImageIcon(getPicturePath()).getImage();
+        return picture.getScaledInstance(width,-1,Image.SCALE_SMOOTH);
+    }
+
+    @Override
+    public GameType getGame() {
+        return game;
+    }
+
+    @Override
+    public void setSelectable(boolean selectable) {
+        this.selectable = selectable;
+    }
+
+    public String toString(){
+        return this.getClass().getName()+"["+game.agent+" -- "+getPlayersName()+"]";
     }
 
 

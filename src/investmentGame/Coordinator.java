@@ -41,18 +41,30 @@ public class Coordinator extends Agent{
                             sendReply(message,new ActMessage("rejected"));
                         }
 
-                        PlayerInterface modelPlayer = new ModelPlayer(message.getContent(),null);
+                        Pattern playerDescPattern = Pattern.compile("<(primary|secondary)>\\s+<player>\\s+([^<>\\s]+)\\s+<looking_like_that>(.+)");
+                        Matcher m = playerDescPattern.matcher(message.getContent());
 
-                        game.addPlayer(modelPlayer);
+                        if (m.matches()){
 
-                        modelPlayer.setCreditBalance(100);
+                            boolean primaryPlayer = m.group(1).equals("primary");
+                            String playersName = m.group(2);
+                            String picturePath = m.group(3);
 
-                        sendReply(message, new ActMessage("welcome"));
+                            PlayerInterface modelPlayer = new CoordinatorsModelPlayer(game,playersName,picturePath);
 
-                        if (game.allPlayersHaveJoined()){
-                            logger.log(Level.INFO,"All players have joined "+game.getGameId()+" ... I will start the game in a few moments.");
-                            pause(500);
-                            game.start();
+                            game.addPlayer(modelPlayer,primaryPlayer);
+
+                            modelPlayer.setCreditBalance(100);
+
+                            sendReply(message, new ActMessage("welcome"));
+
+                            if (game.allPlayersHaveJoined()){
+                                logger.log(Level.INFO,"All players have joined "+game.getGameId()+" ... I will start the game in a few moments.");
+                                pause(500);
+                                game.start();
+                            }
+                        }else{
+                            //TODO throw Exception?
                         }
 
                     }else{
@@ -74,15 +86,16 @@ public class Coordinator extends Agent{
                 if (message.getSender().getRole().equals("player")
                         || message.getSender().getRole().equals("jeromes_assistant")){
 
-                    Pattern requestGameSpecPattern = Pattern.compile("(\\d+)\\s+<players>\\s+<thereof>\\s+(\\d+)\\s+<computer_players>");
+                    Pattern requestGameSpecPattern = Pattern.compile("<new_game>\\s+<for>\\s+(\\d+)\\s+<players>\\s+<having>\\s+(\\d+)\\s+<rounds>\\s+<invite>\\s+(\\d+)\\s+<computer_players>");
 
                     Matcher m = requestGameSpecPattern.matcher(message.getContent());
 
                     if (m.matches()){
                         int numberOfPlayersTotal = Integer.parseInt(m.group(1));
-                        int numberOfComputerPlayersToInvite = Integer.parseInt(m.group(2));
+                        int numberOfRounds = Integer.parseInt(m.group(2));
+                        int numberOfComputerPlayersToInvite = Integer.parseInt(m.group(3));
 
-                        CoordinatorsGame game = initializeGame(numberOfPlayersTotal,numberOfComputerPlayersToInvite);
+                        CoordinatorsGame game = initializeGame(numberOfPlayersTotal,numberOfRounds,numberOfComputerPlayersToInvite);
 
                         games.put(game.getGameId(),game);
 
@@ -102,7 +115,7 @@ public class Coordinator extends Agent{
 
     }
 
-    private CoordinatorsGame initializeGame(int numberOfPlayersTotal,int numberOfComputerPlayersToInvite){
+    private CoordinatorsGame initializeGame(int numberOfPlayersTotal,int numberOfRounds,int numberOfComputerPlayersToInvite){
 
         if (numberOfPlayersTotal>=2 && (numberOfComputerPlayersToInvite<numberOfPlayersTotal)){
 
@@ -112,17 +125,17 @@ public class Coordinator extends Agent{
 
             requestRole("investment_game",gameId,"coordinator");
 
-            CoordinatorsGame game = new CoordinatorsGame(this,gameId,numberOfPlayersTotal,60);
+            CoordinatorsGame game = new CoordinatorsGame(this,gameId,numberOfPlayersTotal,numberOfRounds);
 
             for (int i=0;i<numberOfComputerPlayersToInvite;i++){
-                final Player player = new ComputerPlayer(true);
+                final Player player = new ComputerPlayer(null);
                 launchAgent(player);
-                (new Thread(){
+                new Thread(){
                     @Override
                     public void run() {
-                        player.joinGame(gameId);
+                        player.joinGame(gameId,false,"---");
                     }
-                }).start();
+                }.start();
 
             }
 
@@ -141,7 +154,7 @@ public class Coordinator extends Agent{
 
         games = new HashMap<String, CoordinatorsGame>();
 
-        setLogLevel(Level.INFO);
+        setLogLevel(Level.FINEST);
         createGroupIfAbsent("investment_game", "tout_le_monde");
         requestRole("investment_game","tout_le_monde","coordinator");
 

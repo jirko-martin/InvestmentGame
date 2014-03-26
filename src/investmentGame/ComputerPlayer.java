@@ -13,32 +13,17 @@ public class ComputerPlayer extends Player{
 
     private Strategy strategy;
 
-    private boolean launchedByCoordinator;
-
-    private int test;
-
     private static int instanceCounter = 0;
 
-    public ComputerPlayer(){
-        this(false);
-     }
-
-    public ComputerPlayer(boolean launchedByCoordinator){
-        super("COMPUTER_PLAYER_"+(instanceCounter++),null);
-        this.launchedByCoordinator = launchedByCoordinator;
-        this.test = Math.round((int)Math.random()*10000);
+    public ComputerPlayer(String picturePath){
+        super("COMPUTER_PLAYER_"+(instanceCounter++),picturePath);
         strategy = new RandomStrategy(this); //TODO just for the moment!!
     }
 
     @Override
     protected void live() {
 
-        if (!launchedByCoordinator){
-
-            playGame(5,4);
-
-        }
-        pause(3000);
+        pause(1000);
 
         super.live();
 

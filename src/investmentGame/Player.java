@@ -31,15 +31,15 @@ public abstract class Player extends Agent implements PlayerInterface{
         this("anonymous",null);
     }
 
-    public Player(String name,ImageIcon picture){
-        this.model = new ModelPlayer(name,picture);
+    public Player(String name,String picturePath){
+        this.model = new PlayersModelPlayer(null,name,picturePath);
         setName(name);
     }
 
 
     @Override
     protected void activate() {
-        setLogLevel(Level.INFO);
+        setLogLevel(Level.FINEST);
 
         createGroupIfAbsent("investment_game", "tout_le_monde");
         requestRole("investment_game","tout_le_monde","player");
@@ -51,28 +51,18 @@ public abstract class Player extends Agent implements PlayerInterface{
     protected void live() {
         ActMessage message;
         while ((message=(ActMessage)waitNextMessage())!=null){
-            if (game!=null){
-                game.processMessageEvent(message);
+            if (message.getAction().equals("welcome") && !game.isStarted()){
+                game.start();
+                logger.log(Level.INFO, "PLAYER " + getName() + " joined GAME " + game.getGameId());
+            }else{
+                if (game!=null){
+                    game.processMessageEvent(message);
+                }
             }
         }
     }
 
-    public void playGame(int numberOfPlayersTotal, int numberOfComputerOpponentsToInvite){
-        AgentAddress coordinatorAddress = findCoordinator("tout_le_monde");
-
-        String requestGameSpec = ""+numberOfPlayersTotal+" <players> <thereof> "+numberOfComputerOpponentsToInvite+" <computer_players>";
-
-        ActMessage reply = (ActMessage)sendMessageWithRoleAndWaitForReply(coordinatorAddress,new ActMessage("request_game",requestGameSpec),"player");
-
-        if (reply.getAction().equals("game_initialized")){
-
-            joinGame(reply.getContent());
-
-        }
-
-    }
-
-    public PlayersGame joinGame(String gameId){
+    public void joinGame(String gameId, boolean asPrimaryPlayer, String picturePath){
         AgentAddress coordinator = findCoordinator(gameId);
 
         requestRole("investment_game",gameId,"player");
@@ -84,14 +74,12 @@ public abstract class Player extends Agent implements PlayerInterface{
 
         this.game = game;
 
-        ActMessage reply = (ActMessage)sendMessageWithRoleAndWaitForReply(coordinator,new ActMessage("hello_my_name_is",getPlayersName()),"player");
+        this.model = new PlayersModelPlayer(game,getPlayersName(),picturePath);
 
-        if (reply.getAction().equals("welcome")){
-            game.start();
-            logger.log(Level.INFO,"PLAYER "+getName()+" joined GAME "+gameId);
-        }
+        String playerDesc = (asPrimaryPlayer ? "<primary>" : "<secondary>")+" <player> "+getPlayersName()+" <looking_like_that> "+picturePath;
 
-        return game;
+        sendMessageWithRole(coordinator, new ActMessage("hello_my_name_is", playerDesc), "player");
+
     }
 
     private AgentAddress findCoordinator(String groupName){
@@ -109,15 +97,24 @@ public abstract class Player extends Agent implements PlayerInterface{
     public Transaction transferA(PlayerInterface recipient, double credits) {
         getLogger().log(Level.INFO,"I own "+getCreditBalance()+" credits currently. \nI will A-transfer "+credits+" credits to "+recipient.getPlayersName());
 
-        return this.model.transferA(recipient,credits);
+        Transaction transaction = this.model.transferA(recipient,credits);
+
+        transaction.setSender(this);
+
+        return transaction;
     }
 
     @Override
     public Transaction transferB(PlayerInterface recipient, double credits) {
         getLogger().log(Level.INFO,"I own "+getCreditBalance()+" credits currently. \nI will B-transfer "+credits+" credits to "+recipient.getPlayersName());
 
-        return this.model.transferB(recipient,credits);
+        Transaction transaction = this.model.transferB(recipient,credits);
+
+        transaction.setSender(this);
+
+        return transaction;
     }
+
 
     @Override
     public void setCreditBalance(double balance) {
@@ -130,8 +127,8 @@ public abstract class Player extends Agent implements PlayerInterface{
     }
 
     @Override
-    public ImageIcon getPicture() {
-        return this.model.getPicture();
+    public String getPicturePath() {
+        return this.model.getPicturePath();
     }
 
     @Override
@@ -142,6 +139,21 @@ public abstract class Player extends Agent implements PlayerInterface{
     @Override
     public JPanel getGUIView() {
         return this.model.getGUIView();
+    }
+
+    @Override
+    public Image getScaledPicture(int width) {
+        return this.model.getScaledPicture(width);
+    }
+
+    @Override
+    public Game getGame() {
+        return this.model.getGame();
+    }
+
+    @Override
+    public void setSelectable(boolean selectable) {
+        //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @Override
@@ -172,7 +184,7 @@ public abstract class Player extends Agent implements PlayerInterface{
     @Override
     public void setupFrame(JFrame frame) {
         this.frame = frame;
-        frame.setPreferredSize(new Dimension(800,600));
+        frame.setPreferredSize(new Dimension(1024,768));
     }
 
     public JFrame getFrame() {
@@ -181,5 +193,17 @@ public abstract class Player extends Agent implements PlayerInterface{
 
     public void pauseAWhile(int msec){
         pause(msec);
+    }
+
+    public boolean equals(Player other){
+        return other.getPlayersName().equals(getPlayersName());
+    }
+
+    public void selectPlayer(PlayerInterface player){
+
+    }
+
+    public String toString(){
+        return this.getClass().getName()+"["+super.toString()+" -- "+getPlayersName()+"]";
     }
 }
