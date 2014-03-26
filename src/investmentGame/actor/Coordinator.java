@@ -1,5 +1,8 @@
-package investmentGame;
+package investmentGame.actor;
 
+import investmentGame.actor.game.coordinator.CoordinatorsGame;
+import investmentGame.actor.game.coordinator.CoordinatorsModelPlayer;
+import investmentGame.actor.game.PlayerInterface;
 import madkit.kernel.Agent;
 import madkit.message.ActMessage;
 

@@ -1,5 +1,11 @@
-package investmentGame;
+package investmentGame.actor.game.player;
 
+import investmentGame.actor.game.Game;
+import investmentGame.actor.game.GameState;
+import investmentGame.actor.game.Transfer;
+import investmentGame.actor.Player;
+import investmentGame.actor.game.ModelPlayer;
+import investmentGame.actor.game.PlayerInterface;
 import madkit.message.ActMessage;
 import org.jfree.layout.RadialLayout;
 
@@ -18,11 +24,11 @@ import java.util.regex.Pattern;
  * Time: 18:03
  * To change this template use File | Settings | File Templates.
  */
-public class PlayersGame extends Game{
+public class PlayersGame extends Game {
 
     private Player playersSelf;
 
-    public final Map<String,GameState<PlayersGame>> gameStates = new HashMap<String, GameState<PlayersGame>>();
+    public final Map<String, GameState<PlayersGame>> gameStates = new HashMap<String, GameState<PlayersGame>>();
 
     private GUI gui;
 
@@ -30,7 +36,7 @@ public class PlayersGame extends Game{
 
         public class Panel extends JPanel{
 
-            Transaction transaction;
+            Transfer transfer;
 
             private final int ARR_SIZE = 14;
 
@@ -109,15 +115,15 @@ public class PlayersGame extends Game{
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
 
-                if (transaction!=null){
+                if (transfer !=null){
 
-                    Rectangle r1 = transaction.getSender().getGUIView().getBounds();
+                    Rectangle r1 = transfer.getSender().getGUIView().getBounds();
 
                     System.err.println("r1="+r1);
 
-                    System.err.println("transaction ... " + transaction);
+                    System.err.println("transfer ... " + transfer);
 
-                    Rectangle r2 = transaction.getRecipient().getGUIView().getBounds();
+                    Rectangle r2 = transfer.getRecipient().getGUIView().getBounds();
                     
                     Point[] ps1 = {
                             new Point(r1.getLocation().x+(r1.width/2),r1.getLocation().y),
@@ -145,7 +151,7 @@ public class PlayersGame extends Game{
                             }
                         }
                     
-                    drawArrow(g,p1.x,p1.y,p2.x,p2.y,transaction.getType()==Transaction.TYPE_A?Color.GREEN:Color.ORANGE,transaction.getCreditsTransferred());
+                    drawArrow(g,p1.x,p1.y,p2.x,p2.y, transfer.getType()== Transfer.TYPE_A?Color.GREEN:Color.ORANGE, transfer.getCreditsTransferred());
 
                     (new Thread(){
                         public void run(){
@@ -161,8 +167,8 @@ public class PlayersGame extends Game{
 
             }
 
-            public void showTransaction(Transaction t){
-                transaction = t;
+            public void showTransaction(Transfer t){
+                transfer = t;
                 this.validate();
                 this.repaint();
 
@@ -175,9 +181,9 @@ public class PlayersGame extends Game{
 
         }
 
-        public void showTransaction(Transaction transaction){
+        public void showTransaction(Transfer transfer){
             if (panel!=null)
-                panel.showTransaction(transaction);
+                panel.showTransaction(transfer);
         }
 
         public JPanel getPanel(){
@@ -217,20 +223,20 @@ public class PlayersGame extends Game{
         this.playersSelf = playersSelf;
     }
 
-    protected void acknowledgeTransaction(final Transaction t){
+    protected void acknowledgeTransaction(final Transfer t){
         //getPlayersSelf().pauseAWhile(2000);
         new Thread(){
             public void run(){
                 try{Thread.sleep(2000);}catch(InterruptedException ie){}
                 getPlayersSelf().sendMessageWithRole(
                         playersSelf.getAgentWithRole("investment_game", getGameId(), "coordinator"),
-                        new ActMessage((t.getType()==Transaction.TYPE_A?"processed_transfer_A":"processed_transfer_B"),getPlayersSelf().getPlayersName()),
+                        new ActMessage((t.getType()== Transfer.TYPE_A?"processed_transfer_A":"processed_transfer_B"),getPlayersSelf().getPlayersName()),
                         "player");
             }
         }.start();
 //        getPlayersSelf().sendMessageWithRole(
 //                playersSelf.getAgentWithRole("investment_game", getGameId(), "coordinator"),
-//                new ActMessage((t.getType()==Transaction.TYPE_A?"processed_transfer_A":"processed_transfer_B"),getPlayersSelf().getPlayersName()),
+//                new ActMessage((t.getType()==Transfer.TYPE_A?"processed_transfer_A":"processed_transfer_B"),getPlayersSelf().getPlayersName()),
 //                "player");
     }
 
@@ -369,14 +375,14 @@ public class PlayersGame extends Game{
                     public GameState processMessageEvent(ActMessage message) {
                         if (message.getAction().equals("info_transfer_A")){
 
-                            Transaction transaction= game.transfer(message);
+                            Transfer transfer = game.transfer(message);
 
-                            acknowledgeTransaction(transaction);
+                            acknowledgeTransaction(transfer);
 
-                            if (transaction != null){
-                                game.playerAtTurnA = transaction.getSender();
+                            if (transfer != null){
+                                game.setPlayerAtTurnA(transfer.getSender());
 
-                                agent.getLogger().log(Level.INFO,"  *** player's "+game.getPlayersSelf().getPlayersName()+" playerAtTurnA is now "+game.playerAtTurnA.getPlayersName());
+                                agent.getLogger().log(Level.INFO,"  *** player's "+game.getPlayersSelf().getPlayersName()+" playerAtTurnA is now "+game.getPlayerAtTurnA().getPlayersName());
 
                                 return gameStates.get("waiting_2");
                             }
@@ -408,7 +414,7 @@ public class PlayersGame extends Game{
                     public GameState processMessageEvent(ActMessage message) {
                         if (message.getAction().equals("info_transfer_B")){
 
-                            Transaction t = game.transfer(message);
+                            Transfer t = game.transfer(message);
 
                             acknowledgeTransaction(t);
 
@@ -441,7 +447,7 @@ public class PlayersGame extends Game{
                     public GameState processMessageEvent(ActMessage message) {
                         if (message.getAction().startsWith("info_transfer_")){
 
-                            Transaction t = game.transfer(message);
+                            Transfer t = game.transfer(message);
 
                             acknowledgeTransaction(t);
 
@@ -482,7 +488,7 @@ public class PlayersGame extends Game{
                     public GameState processMessageEvent(ActMessage message) {
                         if (message.getAction().equals("info_transfer_B")){
 
-                            Transaction t = game.transfer(message);
+                            Transfer t = game.transfer(message);
 
                             acknowledgeTransaction(t);
 
@@ -539,8 +545,8 @@ public class PlayersGame extends Game{
     }
 
     @Override
-    public Transaction transfer(ActMessage message) {
-        Transaction t = super.transfer(message);
+    public Transfer transfer(ActMessage message) {
+        Transfer t = super.transfer(message);
         if (gui != null)
             gui.showTransaction(t);
         return t;

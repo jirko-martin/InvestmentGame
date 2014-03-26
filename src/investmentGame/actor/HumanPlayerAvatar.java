@@ -1,5 +1,7 @@
-package investmentGame;
+package investmentGame.actor;
 
+import investmentGame.actor.game.PlayerInterface;
+import investmentGame.actor.game.Transfer;
 import madkit.message.ActMessage;
 
 import javax.swing.*;
@@ -7,8 +9,6 @@ import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
 import java.util.logging.Level;
 
 /**
@@ -18,7 +18,7 @@ import java.util.logging.Level;
  * Time: 11:20
  * To change this template use File | Settings | File Templates.
  */
-public class HumanPlayerAvatar extends Player{
+public class HumanPlayerAvatar extends Player {
 
     private GUI gui;
 
@@ -134,7 +134,7 @@ public class HumanPlayerAvatar extends Player{
                                     panel.revalidate();
                                     panel.updateUI();
 
-                                    decideOnTransfer(new Transaction(Transaction.TYPE_A, HumanPlayerAvatar.this, playerSelected, value));
+                                    decideOnTransfer(new Transfer(Transfer.TYPE_A, HumanPlayerAvatar.this, playerSelected, value));
                                 }
                             }.start();
                             //pause(1000);
@@ -201,7 +201,7 @@ public class HumanPlayerAvatar extends Player{
                                     panel.revalidate();
                                     panel.updateUI();
 
-                                    decideOnTransfer(new Transaction(Transaction.TYPE_B, HumanPlayerAvatar.this, game.playerAtTurnA, value));
+                                    decideOnTransfer(new Transfer(Transfer.TYPE_B, HumanPlayerAvatar.this, game.getPlayerAtTurnA(), value));
                                 }
                             }.start();
                             //pause(1000);
@@ -285,14 +285,14 @@ public class HumanPlayerAvatar extends Player{
         }
     }
 
-    public void decideOnTransfer(Transaction transaction){
-        String transferDesc = "<player> "+getPlayersName()+" <decides_to_transfer> "+((int)transaction.getCreditsTransferred())+" <credits> <to> <player> "+transaction.getRecipient().getPlayersName();
-        receiveMessage(new ActMessage("decide_on_transfer_"+(transaction.getType()==Transaction.TYPE_A?"A":"B"),transferDesc));
+    public void decideOnTransfer(Transfer transfer){
+        String transferDesc = "<player> "+getPlayersName()+" <decides_to_transfer> "+((int) transfer.getCreditsTransferred())+" <credits> <to> <player> "+ transfer.getRecipient().getPlayersName();
+        receiveMessage(new ActMessage("decide_on_transfer_"+(transfer.getType()== Transfer.TYPE_A?"A":"B"),transferDesc));
     }
 
     @Override
-    public Transaction transferA(PlayerInterface recipient, double credits) {
-        Transaction t = super.transferA(recipient, credits);
+    public Transfer transferA(PlayerInterface recipient, double credits) {
+        Transfer t = super.transferA(recipient, credits);
         if (gui != null){
             System.err.println("human player "+getPlayersName()+" has gui and will update view to new credit balance "+getCreditBalance()+" now");
             gui.update();
@@ -301,8 +301,8 @@ public class HumanPlayerAvatar extends Player{
     }
 
     @Override
-    public Transaction transferB(PlayerInterface recipient, double credits) {
-        Transaction t = super.transferB(recipient, credits);
+    public Transfer transferB(PlayerInterface recipient, double credits) {
+        Transfer t = super.transferB(recipient, credits);
         if (gui != null){
             System.err.println("human player "+getPlayersName()+" has gui and will update view to new credit balance "+getCreditBalance()+" now");
             gui.update();

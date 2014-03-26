@@ -1,9 +1,10 @@
-package investmentGame;
+package investmentGame.actor;
 
+import investmentGame.Configuration;
+import investmentGame.actor.Player;
 import madkit.kernel.Agent;
 import madkit.kernel.AgentAddress;
 import madkit.message.ActMessage;
-import sun.tools.jconsole.JConsole;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;

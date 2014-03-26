@@ -1,4 +1,4 @@
-package investmentGame;
+package investmentGame.actor.game;
 
 import madkit.message.ActMessage;
 

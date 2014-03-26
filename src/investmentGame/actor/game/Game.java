@@ -1,4 +1,4 @@
-package investmentGame;
+package investmentGame.actor.game;
 
 import madkit.kernel.Agent;
 import madkit.message.ActMessage;
@@ -25,7 +25,7 @@ public abstract class Game<StateType extends GameState> {
 
     protected Agent agent;
 
-    protected PlayerInterface playerAtTurnA;
+    private PlayerInterface playerAtTurnA;
 
     protected Map<String,PlayerInterface> players = new HashMap<String,PlayerInterface>();
 
@@ -66,7 +66,7 @@ public abstract class Game<StateType extends GameState> {
         return players.get(playersName);
     }
 
-    public Transaction transfer(ActMessage message){
+    public Transfer transfer(ActMessage message){
         if (!message.getAction().startsWith("info_transfer")){
             //TODO throw Exception
         }
@@ -79,10 +79,10 @@ public abstract class Game<StateType extends GameState> {
             double credits = Double.parseDouble(contentMatcher.group(2));
             String recipient = contentMatcher.group(3);
             if (message.getAction().equals("info_transfer_A")){
-                Transaction transaction = getPlayer(sender).transferA(getPlayer(recipient),credits);
-                if (transaction != null){
-                    this.playerAtTurnA = transaction.getSender();
-                    return transaction;
+                Transfer transfer = getPlayer(sender).transferA(getPlayer(recipient),credits);
+                if (transfer != null){
+                    this.playerAtTurnA = transfer.getSender();
+                    return transfer;
                 }
             }else{
                 if (message.getAction().equals("info_transfer_B"))
@@ -91,6 +91,8 @@ public abstract class Game<StateType extends GameState> {
         }
         return null;
     }
+
+
 
     public void addPlayer(PlayerInterface player){
 
@@ -151,4 +153,11 @@ public abstract class Game<StateType extends GameState> {
 
     }
 
+    public PlayerInterface getPlayerAtTurnA() {
+        return playerAtTurnA;
+    }
+
+    public void setPlayerAtTurnA(PlayerInterface playerAtTurnA) {
+        this.playerAtTurnA = playerAtTurnA;
+    }
 }

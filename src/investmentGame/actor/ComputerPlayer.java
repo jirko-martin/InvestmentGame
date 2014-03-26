@@ -1,5 +1,8 @@
-package investmentGame;
+package investmentGame.actor;
 
+import investmentGame.actor.game.PlayerInterface;
+import investmentGame.actor.game.player.strategy.RandomStrategy;
+import investmentGame.actor.game.player.strategy.Strategy;
 import madkit.message.ActMessage;
 
 /**
@@ -9,7 +12,7 @@ import madkit.message.ActMessage;
  * Time: 16:53
  * To change this template use File | Settings | File Templates.
  */
-public class ComputerPlayer extends Player{
+public class ComputerPlayer extends Player {
 
     private Strategy strategy;
 
@@ -41,7 +44,7 @@ public class ComputerPlayer extends Player{
 
     @Override
     public void onMyTurnB() {
-        PlayerInterface opponent = game.playerAtTurnA;
+        PlayerInterface opponent = game.getPlayerAtTurnA();
         double amountCreditsToTransfer = strategy.chooseCreditAmountForTransferB(opponent);
         String transferDesc = "<player> "+getPlayersName()+" <decides_to_transfer> "+((int)amountCreditsToTransfer)+" <credits> <to> <player> "+opponent.getPlayersName();
         //broadcastMessageWithRole("investment_game",game.getGameId(),"player_"+getPlayersName(),new ActMessage("decide_on_transfer_B",transferDesc),"player_"+getPlayersName());

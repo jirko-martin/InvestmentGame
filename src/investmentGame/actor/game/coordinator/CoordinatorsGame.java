@@ -1,5 +1,9 @@
-package investmentGame;
+package investmentGame.actor.game.coordinator;
 
+import investmentGame.actor.game.Game;
+import investmentGame.actor.game.GameState;
+import investmentGame.actor.game.PlayerInterface;
+import investmentGame.actor.Coordinator;
 import madkit.message.ActMessage;
 
 import java.util.*;
@@ -14,7 +18,7 @@ import java.util.regex.Pattern;
  * Time: 17:50
  * To change this template use File | Settings | File Templates.
  */
-public class CoordinatorsGame extends Game{
+public class CoordinatorsGame extends Game {
 
     private Coordinator coordinator;
 
@@ -29,7 +33,7 @@ public class CoordinatorsGame extends Game{
 
     protected PlayerInterface primaryPlayer;
 
-    public final Map<String,GameState<CoordinatorsGame>> gameStates = new HashMap<String, GameState<CoordinatorsGame>>();
+    public final Map<String, GameState<CoordinatorsGame>> gameStates = new HashMap<String, GameState<CoordinatorsGame>>();
 
     public CoordinatorsGame(Coordinator coordinator,String gameId, int numberOfPlayersTotal,int numberOfRoundsTotal) {
         super(gameId,coordinator);

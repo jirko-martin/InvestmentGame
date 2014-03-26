@@ -1,4 +1,7 @@
-package investmentGame;
+package investmentGame.actor.game.player.strategy;
+
+import investmentGame.actor.Player;
+import investmentGame.actor.game.PlayerInterface;
 
 /**
  * Created with IntelliJ IDEA.

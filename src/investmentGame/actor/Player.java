@@ -1,5 +1,11 @@
-package investmentGame;
+package investmentGame.actor;
 
+import investmentGame.actor.game.Game;
+import investmentGame.actor.game.ModelPlayer;
+import investmentGame.actor.game.PlayerInterface;
+import investmentGame.actor.game.Transfer;
+import investmentGame.actor.game.player.PlayersGame;
+import investmentGame.actor.game.player.PlayersModelPlayer;
 import madkit.kernel.Agent;
 import madkit.kernel.AgentAddress;
 import madkit.message.ActMessage;
@@ -19,7 +25,7 @@ import java.util.logging.Level;
  * Time: 16:49
  * To change this template use File | Settings | File Templates.
  */
-public abstract class Player extends Agent implements PlayerInterface{
+public abstract class Player extends Agent implements PlayerInterface {
 
     protected PlayersGame game;
 
@@ -94,25 +100,25 @@ public abstract class Player extends Agent implements PlayerInterface{
     }
 
     @Override
-    public Transaction transferA(PlayerInterface recipient, double credits) {
+    public Transfer transferA(PlayerInterface recipient, double credits) {
         getLogger().log(Level.INFO,"I own "+getCreditBalance()+" credits currently. \nI will A-transfer "+credits+" credits to "+recipient.getPlayersName());
 
-        Transaction transaction = this.model.transferA(recipient,credits);
+        Transfer transfer = this.model.transferA(recipient,credits);
 
-        transaction.setSender(this);
+        transfer.setSender(this);
 
-        return transaction;
+        return transfer;
     }
 
     @Override
-    public Transaction transferB(PlayerInterface recipient, double credits) {
+    public Transfer transferB(PlayerInterface recipient, double credits) {
         getLogger().log(Level.INFO,"I own "+getCreditBalance()+" credits currently. \nI will B-transfer "+credits+" credits to "+recipient.getPlayersName());
 
-        Transaction transaction = this.model.transferB(recipient,credits);
+        Transfer transfer = this.model.transferB(recipient,credits);
 
-        transaction.setSender(this);
+        transfer.setSender(this);
 
-        return transaction;
+        return transfer;
     }
 
 

@@ -1,4 +1,8 @@
-package investmentGame;
+package investmentGame.actor.game.player;
+
+import investmentGame.actor.game.Transfer;
+import investmentGame.actor.game.ModelPlayer;
+import investmentGame.actor.game.PlayerInterface;
 
 import javax.swing.*;
 import javax.swing.border.LineBorder;
@@ -13,7 +17,7 @@ import java.awt.event.MouseEvent;
  * Time: 19:05
  * To change this template use File | Settings | File Templates.
  */
-public class PlayersModelPlayer extends ModelPlayer<PlayersGame>{
+public class PlayersModelPlayer extends ModelPlayer<PlayersGame> {
 
     public PlayersModelPlayer(PlayersGame game, String name, String picturePath) {
         super(game, name, picturePath);
@@ -52,12 +56,12 @@ public class PlayersModelPlayer extends ModelPlayer<PlayersGame>{
     }
 
     @Override
-    public Transaction transferA(PlayerInterface recipient, double credits) throws OverdrawnException {
+    public Transfer transferA(PlayerInterface recipient, double credits) throws OverdrawnException {
         return super.transferA(recipient, credits);    //To change body of overridden methods use File | Settings | File Templates.
     }
 
     @Override
-    public Transaction transferB(PlayerInterface recipient, double credits) throws OverdrawnException {
+    public Transfer transferB(PlayerInterface recipient, double credits) throws OverdrawnException {
         return super.transferB(recipient, credits);    //To change body of overridden methods use File | Settings | File Templates.
     }
 }

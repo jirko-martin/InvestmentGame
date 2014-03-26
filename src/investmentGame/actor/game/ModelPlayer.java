@@ -1,12 +1,8 @@
-package investmentGame;
+package investmentGame.actor.game;
 
 import javax.swing.*;
 import javax.swing.border.LineBorder;
-import javax.swing.border.SoftBevelBorder;
-import javax.swing.plaf.metal.MetalBorders;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.logging.Level;
 
 /**
@@ -16,7 +12,7 @@ import java.util.logging.Level;
  * Time: 11:15
  * To change this template use File | Settings | File Templates.
  */
-public class ModelPlayer<GameType extends Game> implements PlayerInterface{
+public class ModelPlayer<GameType extends Game> implements PlayerInterface {
 
     private GameType game;
 
@@ -94,17 +90,17 @@ public class ModelPlayer<GameType extends Game> implements PlayerInterface{
     }
 
     @Override
-    public Transaction transferA(PlayerInterface recipient, double credits) throws OverdrawnException{
+    public Transfer transferA(PlayerInterface recipient, double credits) throws OverdrawnException{
         this.setCreditBalance(this.getCreditBalance() - credits);
         recipient.setCreditBalance(recipient.getCreditBalance() + (3 * credits));
-        return new Transaction(Transaction.TYPE_A,this,recipient,credits);
+        return new Transfer(Transfer.TYPE_A,this,recipient,credits);
     }
 
     @Override
-    public Transaction transferB(PlayerInterface recipient, double credits) throws OverdrawnException{
+    public Transfer transferB(PlayerInterface recipient, double credits) throws OverdrawnException{
         this.setCreditBalance(this.getCreditBalance() - credits);
         recipient.setCreditBalance(recipient.getCreditBalance() + credits);
-        return new Transaction(Transaction.TYPE_B,this,recipient,credits);
+        return new Transfer(Transfer.TYPE_B,this,recipient,credits);
     }
 
     @Override

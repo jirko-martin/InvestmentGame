@@ -1,4 +1,7 @@
-package investmentGame;
+package investmentGame.actor.game.player.strategy;
+
+import investmentGame.actor.Player;
+import investmentGame.actor.game.PlayerInterface;
 
 import java.util.ArrayList;
 
@@ -9,7 +12,7 @@ import java.util.ArrayList;
  * Time: 20:48
  * To change this template use File | Settings | File Templates.
  */
-public class RandomStrategy extends Strategy{
+public class RandomStrategy extends Strategy {
 
     public RandomStrategy(Player player){
         super(player);

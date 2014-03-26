@@ -1,4 +1,6 @@
-package investmentGame;
+package investmentGame.actor.game;
+
+import investmentGame.actor.game.PlayerInterface;
 
 /**
  * Created with IntelliJ IDEA.
@@ -7,7 +9,7 @@ package investmentGame;
  * Time: 21:06
  * To change this template use File | Settings | File Templates.
  */
-public class Transaction {
+public class Transfer {
 
     public static int TYPE_A = 1;
     public static int TYPE_B = 2;
@@ -17,7 +19,7 @@ public class Transaction {
     private PlayerInterface recipient;
     private double creditsTransferred;
 
-    public Transaction(int type, PlayerInterface sender, PlayerInterface recipient, double creditsTransferred) {
+    public Transfer(int type, PlayerInterface sender, PlayerInterface recipient, double creditsTransferred) {
         this.type = type;
         this.sender = sender;
         this.recipient = recipient;
@@ -45,6 +47,6 @@ public class Transaction {
     }
 
     public String toString(){
-        return "Transaction[ from = ("+sender+") , to = ("+recipient+") , amount = ("+creditsTransferred+") ]";
+        return "Transfer[ from = ("+sender+") , to = ("+recipient+") , amount = ("+creditsTransferred+") ]";
     }
 }

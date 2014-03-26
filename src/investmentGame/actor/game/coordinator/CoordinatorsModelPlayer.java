@@ -1,4 +1,6 @@
-package investmentGame;
+package investmentGame.actor.game.coordinator;
+
+import investmentGame.actor.game.ModelPlayer;
 
 /**
  * Created with IntelliJ IDEA.
@@ -7,7 +9,7 @@ package investmentGame;
  * Time: 19:08
  * To change this template use File | Settings | File Templates.
  */
-public class CoordinatorsModelPlayer extends ModelPlayer<CoordinatorsGame>{
+public class CoordinatorsModelPlayer extends ModelPlayer<CoordinatorsGame> {
     public CoordinatorsModelPlayer(CoordinatorsGame game, String name, String picturePath) {
         super(game, name, picturePath);
     }

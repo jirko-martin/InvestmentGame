@@ -1,4 +1,4 @@
-package investmentGame;
+package investmentGame.actor.game;
 
 import javax.swing.*;
 import java.awt.*;
@@ -12,9 +12,9 @@ import java.awt.*;
  */
 public interface PlayerInterface{
 
-    public Transaction transferA(PlayerInterface recipient,double credits);
+    public Transfer transferA(PlayerInterface recipient,double credits);
 
-    public Transaction transferB(PlayerInterface recipient,double credits);
+    public Transfer transferB(PlayerInterface recipient,double credits);
 
     public void setCreditBalance(double balance);
 

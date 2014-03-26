@@ -1,5 +1,6 @@
 package investmentGame;
 
+import investmentGame.actor.JeromesAssistant;
 import madkit.kernel.Madkit;
 
 /**
@@ -9,7 +10,7 @@ import madkit.kernel.Madkit;
  * Time: 17:04
  * To change this template use File | Settings | File Templates.
  */
-public class GameController {
+public class InvestmentGame {
 
     public static void main(String[] args){
 
