@@ -228,12 +228,13 @@ public class HumanPlayerAvatar extends Player{
         }
 
         public void selectPlayer(PlayerInterface player){
-            if (inTurn == IN_TURN_A){
+            if (IN_TURN_A == inTurn){
                 onMyTurnA2ndStage(player);
             }
         }
 
     }
+
 
     public HumanPlayerAvatar(String playersName){
         super(playersName,null);
