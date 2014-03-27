@@ -1,5 +1,7 @@
 package investmentGame.actor;
 
+import investmentGame.actor.game.Exchange;
+import investmentGame.actor.game.Game;
 import investmentGame.actor.game.PlayerInterface;
 import investmentGame.actor.game.player.strategy.RandomStrategy;
 import investmentGame.actor.game.player.strategy.Strategy;
@@ -37,17 +39,21 @@ public class ComputerPlayer extends Player {
         PlayerInterface opponent = strategy.selectOpponentForTransferA();
         double amountCreditsToTransfer = strategy.chooseCreditAmountForTransferA(opponent);
         String transferDesc = "<player> "+getPlayersName()+" <decides_to_transfer> "+((int)amountCreditsToTransfer)+" <credits> <to> <player> "+opponent.getPlayersName();
-        //getLogger().log(Level.INFO,getPlayersName()+" --- broadcast to role "+"player_"+getPlayersName());
-        //broadcastMessageWithRole("investment_game", game.getGameId(), "player_" + getPlayersName(), new ActMessage("decide_on_transfer_A", transferDesc), "player_" + getPlayersName());
         receiveMessage(new ActMessage("decide_on_transfer_A",transferDesc));
     }
 
     @Override
     public void onMyTurnB() {
-        PlayerInterface opponent = game.getPlayerAtTurnA();
-        double amountCreditsToTransfer = strategy.chooseCreditAmountForTransferB(opponent);
-        String transferDesc = "<player> "+getPlayersName()+" <decides_to_transfer> "+((int)amountCreditsToTransfer)+" <credits> <to> <player> "+opponent.getPlayersName();
-        //broadcastMessageWithRole("investment_game",game.getGameId(),"player_"+getPlayersName(),new ActMessage("decide_on_transfer_B",transferDesc),"player_"+getPlayersName());
-        receiveMessage(new ActMessage("decide_on_transfer_B",transferDesc));
+        try {
+            PlayerInterface opponent = game.getCurrentRoundExchange().getTransferA().getSender();
+            double amountCreditsToTransfer = strategy.chooseCreditAmountForTransferB(opponent);
+            String transferDesc = "<player> "+getPlayersName()+" <decides_to_transfer> "+((int)amountCreditsToTransfer)+" <credits> <to> <player> "+opponent.getPlayersName();
+            receiveMessage(new ActMessage("decide_on_transfer_B",transferDesc));
+        } catch (Exchange.TransferNotCommittedException e) {
+            e.printStackTrace();
+        } catch (Game.GameNotStartedYetException e) {
+            e.printStackTrace();
+        }
+
     }
 }

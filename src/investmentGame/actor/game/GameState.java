@@ -28,7 +28,7 @@ public class GameState<GameType extends Game> {
 
     }
 
-    public GameState processMessageEvent(ActMessage message){
+    public GameState processMessageEvent(ActMessage message) {
         return this;
     }
 

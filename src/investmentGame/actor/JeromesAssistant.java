@@ -404,9 +404,15 @@ public class JeromesAssistant extends Agent{
 
                             setText(file.getName());
 
-                            Image image = new ImageIcon(file.getAbsolutePath()).getImage();
+                            ImageIcon icon = new ImageIcon(file.getAbsolutePath());
 
-                            setIcon(new ImageIcon(image.getScaledInstance(110,-1,Image.SCALE_SMOOTH)));
+                            Image image = icon.getImage();
+
+                            if (icon.getIconHeight()>icon.getIconWidth()){
+                                setIcon(new ImageIcon(image.getScaledInstance(-1,110,Image.SCALE_SMOOTH)));
+                            }else{
+                                setIcon(new ImageIcon(image.getScaledInstance(110,-1,Image.SCALE_SMOOTH)));
+                            }
 
                             Color background;
                             Color foreground;

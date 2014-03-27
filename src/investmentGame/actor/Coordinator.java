@@ -1,5 +1,6 @@
 package investmentGame.actor;
 
+import investmentGame.actor.game.Transfer;
 import investmentGame.actor.game.coordinator.CoordinatorsGame;
 import investmentGame.actor.game.coordinator.CoordinatorsModelPlayer;
 import investmentGame.actor.game.PlayerInterface;

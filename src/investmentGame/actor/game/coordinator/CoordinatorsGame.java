@@ -1,8 +1,6 @@
 package investmentGame.actor.game.coordinator;
 
-import investmentGame.actor.game.Game;
-import investmentGame.actor.game.GameState;
-import investmentGame.actor.game.PlayerInterface;
+import investmentGame.actor.game.*;
 import investmentGame.actor.Coordinator;
 import madkit.message.ActMessage;
 
@@ -27,9 +25,6 @@ public class CoordinatorsGame extends Game {
     private int numberOfRoundsTotal;
 
     private int numberOfRoundsPassed = 0;
-
-    protected PlayerInterface playerAtTurnA;
-    protected PlayerInterface playerAtTurnB;
 
     protected PlayerInterface primaryPlayer;
 
@@ -78,7 +73,7 @@ public class CoordinatorsGame extends Game {
 
                     @Override
                     public void onExitState() {
-                        super.onExitState();    //To change body of overridden methods use File | Settings | File Templates.
+                        super.onExitState();
                     }
 
                     @Override
@@ -108,7 +103,7 @@ public class CoordinatorsGame extends Game {
 
                         if (game.hasNextRound()){
 
-                            playerAtTurnA = game.selectPlayer();
+                            PlayerInterface playerAtTurnA = game.selectPlayer();
 
                             game.setGameState(gameStates.get("waiting_1"));
 
@@ -126,12 +121,12 @@ public class CoordinatorsGame extends Game {
 
                     @Override
                     public void onExitState() {
-                        super.onExitState();    //To change body of overridden methods use File | Settings | File Templates.
+                        super.onExitState();
                     }
 
                     @Override
                     public GameState processMessageEvent(ActMessage message) {
-                        return super.processMessageEvent(message);    //To change body of overridden methods use File | Settings | File Templates.
+                        return super.processMessageEvent(message);
                     }
                 }
 
@@ -144,33 +139,45 @@ public class CoordinatorsGame extends Game {
                 new GameState<CoordinatorsGame>("waiting_1",this){
                     @Override
                     public void onEnterState() {
-                        super.onEnterState();    //To change body of overridden methods use File | Settings | File Templates.
+                        super.onEnterState();
                     }
 
                     @Override
                     public void onExitState() {
-                        super.onExitState();    //To change body of overridden methods use File | Settings | File Templates.
+                        super.onExitState();
                     }
 
                     @Override
                     public GameState processMessageEvent(ActMessage message) {
+
                         if (message.getAction().equals("decide_on_transfer_A")){
+
                             game.getCoordinator().getLogger().log(Level.INFO,"coordinator processes event decide_on_transfer_A : "+message.getContent());
-                            Pattern transferDescriptionPattern = Pattern.compile("<player>\\s+([^<>\\s]+)\\s+<decides_to_transfer>\\s+(\\d+)\\s+<credits>\\s+<to>\\s+<player>\\s+([^<>\\s]+)");
-                            Matcher m = transferDescriptionPattern.matcher(message.getContent());
-                            if (m.matches()){
-                                String sendersName = m.group(1);
-                                double credits = Double.parseDouble(m.group(2));
-                                String recipientsName = m.group(3);
-                                if (sendersName.equals(playerAtTurnA.getPlayersName())){
-                                    ActMessage messageToEmit = new ActMessage("info_transfer_A",sendersName+" <sends> "+((int)credits)+" <to> "+recipientsName);
-                                    game.transfer(messageToEmit);
-                                    game.getCoordinator().broadcastMessageWithRole("investment_game",game.getGameId(),"player",messageToEmit,"coordinator");
-                            //        game.getCoordinator().pauseAWhile(1500);
-                                    playerAtTurnB = game.getPlayer(recipientsName);
+
+                            Transfer transfer = TransferFactory.transferFromMessage(message,game);
+
+                            if (transfer instanceof Exchange.TransferA){
+
+                                Exchange.TransferA transferA = (Exchange.TransferA)transfer;
+
+                                try {
+
+                                    game.commit(transferA);
+
+                                    game.getCoordinator().broadcastMessageWithRole("investment_game",game.getGameId(),"player",TransferFactory.getInfoMessageForTransfer(transferA),"coordinator");
+
                                     return gameStates.get("join_transfer_A");
+
+                                } catch (GameNotStartedYetException e) {
+                                    e.printStackTrace();
+                                } catch (Exchange.TransferAlreadyCommittedException e) {
+                                    e.printStackTrace();
+                                } catch (Exchange.ConstraintViolationException e) {
+                                    e.printStackTrace();
                                 }
+
                             }
+
                         }
                         return this;
                     }
@@ -186,31 +193,60 @@ public class CoordinatorsGame extends Game {
                     @Override
                     public void onEnterState() {
 
-                        game.getCoordinator().broadcastMessageWithRole("investment_game",game.getGameId(),"player_"+playerAtTurnB.getPlayersName(),new ActMessage("your_turn_B"),"coordinator");
+                        try {
+                            PlayerInterface playerAtTurnB = getCurrentRoundExchange().getTransferA().getRecipient();
+
+                            if (getCurrentRoundExchange().transferAWasExecuted()){
+
+                                game.getCoordinator().broadcastMessageWithRole("investment_game",game.getGameId(),"player_"+playerAtTurnB.getPlayersName(),new ActMessage("your_turn_B"),"coordinator");
+
+                            }else{
+                                game.agent.getLogger().log(Level.SEVERE, "onEnterState waiting_2 : transferA was not executed");
+                            }
+
+                        } catch (Exchange.TransferNotCommittedException e) {
+                            e.printStackTrace();
+                        } catch (GameNotStartedYetException e) {
+                            e.printStackTrace();
+                        }
+
                     }
 
                     @Override
                     public void onExitState() {
-                        super.onExitState();    //To change body of overridden methods use File | Settings | File Templates.
+                        super.onExitState();
                     }
 
                     @Override
                     public GameState processMessageEvent(ActMessage message) {
                         if (message.getAction().equals("decide_on_transfer_B")){
-                            Pattern transferDescriptionPattern = Pattern.compile("<player>\\s+([^<>\\s]+)\\s+<decides_to_transfer>\\s+(\\d+)\\s+<credits>\\s+<to>\\s+<player>\\s+([^<>\\s]+)");
-                            Matcher m = transferDescriptionPattern.matcher(message.getContent());
-                            if (m.matches()){
-                                String sendersName = m.group(1);
-                                double credits = Double.parseDouble(m.group(2));
-                                String recipientsName = m.group(3);
-                                if (sendersName.equals(playerAtTurnB.getPlayersName())
-                                        && recipientsName.equals(playerAtTurnA.getPlayersName())){
-                                    ActMessage messageToEmit = new ActMessage("info_transfer_B",sendersName+" <sends> "+((int)credits)+" <to> "+recipientsName);
-                                    game.transfer(messageToEmit);
-                                    game.getCoordinator().broadcastMessageWithRole("investment_game",game.getGameId(),"player",messageToEmit,"coordinator");
-                          //          game.getCoordinator().pauseAWhile(1500);
+
+                            game.getCoordinator().getLogger().log(Level.INFO,"coordinator processes event decide_on_transfer_B : "+message.getContent());
+
+                            Transfer transfer = TransferFactory.transferFromMessage(message, game);
+
+                            if (transfer instanceof Exchange.TransferB){
+
+                                Exchange.TransferB transferB = (Exchange.TransferB)transfer;
+
+                                try {
+
+                                    game.commit(transferB);
+
+                                    game.getCoordinator().broadcastMessageWithRole("investment_game",game.getGameId(),"player",TransferFactory.getInfoMessageForTransfer(transferB),"coordinator");
+
                                     return gameStates.get("join_transfer_B");
+
+                                } catch (GameNotStartedYetException e) {
+                                    e.printStackTrace();
+                                } catch (Exchange.TransferAlreadyCommittedException e) {
+                                    e.printStackTrace();
+                                } catch (Exchange.ConstraintViolationException e) {
+                                    e.printStackTrace();
+                                } catch (Exchange.PrimaryTransferNotCommittedYetException e) {
+                                    e.printStackTrace();
                                 }
+
                             }
                         }
                         return this;
@@ -240,7 +276,19 @@ public class CoordinatorsGame extends Game {
 
                     @Override
                     public void onExitState() {
-                        super.onExitState();    //To change body of overridden methods use File | Settings | File Templates.
+                        try {
+                            game.confirmExecute(game.getCurrentRoundExchange().getTransferB());
+                        } catch (GameNotStartedYetException e) {
+                            e.printStackTrace();
+                        } catch (Exchange.ConstraintViolationException e) {
+                            e.printStackTrace();
+                        } catch (Exchange.TransferNotCommittedException e) {
+                            e.printStackTrace();
+                        } catch (GameIsOverException e) {
+                            e.printStackTrace();
+                        } catch (RoundNotFinalizedYetException e) {
+                            e.printStackTrace();
+                        }
                     }
 
                     @Override
@@ -280,7 +328,15 @@ public class CoordinatorsGame extends Game {
 
                     @Override
                     public void onExitState() {
-                        super.onExitState();    //To change body of overridden methods use File | Settings | File Templates.
+                        try {
+                            game.confirmExecute(game.getCurrentRoundExchange().getTransferA());
+                        } catch (GameNotStartedYetException e) {
+                            e.printStackTrace();
+                        } catch (Exchange.ConstraintViolationException e) {
+                            e.printStackTrace();
+                        } catch (Exchange.TransferNotCommittedException e) {
+                            e.printStackTrace();
+                        }
                     }
 
                     @Override
@@ -307,6 +363,12 @@ public class CoordinatorsGame extends Game {
                     @Override
                     public void onEnterState() {
 
+                        try {
+                            game.endGame();
+                        } catch (GameNotStartedYetException e) {
+                            e.printStackTrace();
+                        }
+
                         List<PlayerInterface> playersRanked = game.getPlayersRanked();
 
                         game.getCoordinator().getLogger().log(Level.INFO,"\n\nAND THE WINNER IS ... "+playersRanked.get(0).getPlayersName()+" ("+playersRanked.get(0).getCreditBalance()+" credits)");
@@ -316,12 +378,12 @@ public class CoordinatorsGame extends Game {
 
                     @Override
                     public void onExitState() {
-                        super.onExitState();    //To change body of overridden methods use File | Settings | File Templates.
+                        super.onExitState();
                     }
 
                     @Override
-                    public GameState processMessageEvent(ActMessage message) {
-                        return super.processMessageEvent(message);    //To change body of overridden methods use File | Settings | File Templates.
+                    public GameState processMessageEvent(ActMessage message){
+                        return super.processMessageEvent(message);
                     }
                 }
 
@@ -348,13 +410,17 @@ public class CoordinatorsGame extends Game {
 
     public PlayerInterface selectPlayer(){
 
-        if (playerAtTurnB!=null)
-            return playerAtTurnB;
-        else
+        try {
+            return getLastRoundExchange().getTransferB().getSender();
+        } catch (Exchange.TransferNotCommittedException e) {
             return primaryPlayer;
+        } catch (GameNotStartedYetException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        } catch (NoSuchRoundExchangeException e) {
+            return primaryPlayer;
+        }
 
-//        ArrayList<PlayerInterface> playersList = new ArrayList<PlayerInterface>(players.values());
-//        return playersList.get((int)Math.round(Math.random()*(playersList.size()-1)));
     }
 
     public int getNumberOfRoundsTotal() {

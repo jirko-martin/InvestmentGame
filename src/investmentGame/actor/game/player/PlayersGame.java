@@ -1,11 +1,7 @@
 package investmentGame.actor.game.player;
 
-import investmentGame.actor.game.Game;
-import investmentGame.actor.game.GameState;
-import investmentGame.actor.game.Transfer;
+import investmentGame.actor.game.*;
 import investmentGame.actor.Player;
-import investmentGame.actor.game.ModelPlayer;
-import investmentGame.actor.game.PlayerInterface;
 import madkit.message.ActMessage;
 import org.jfree.layout.RadialLayout;
 
@@ -37,6 +33,7 @@ public class PlayersGame extends Game {
         public class Panel extends JPanel{
 
             Transfer transfer;
+            Exchange exchange;
 
             private final int ARR_SIZE = 14;
 
@@ -153,11 +150,13 @@ public class PlayersGame extends Game {
                     
                     drawArrow(g,p1.x,p1.y,p2.x,p2.y, transfer.getType()== Transfer.TYPE_A?Color.GREEN:Color.ORANGE, transfer.getCreditsTransferred());
 
+
+
                     (new Thread(){
                         public void run(){
                             try{
-                                Thread.sleep(1000);
-                                showTransaction(null);
+                                Thread.sleep(2000);
+                                showTransaction(null,transfer instanceof Exchange.TransferA ? exchange : null);
                             }catch (InterruptedException e){
 
                             }
@@ -165,10 +164,49 @@ public class PlayersGame extends Game {
                     }).start();
                 }
 
+                if (exchange != null){
+
+                    try {
+
+                        Rectangle r1 = exchange.getTransferA().getSender().getGUIView().getBounds();
+                        Rectangle r2 = exchange.getTransferA().getRecipient().getGUIView().getBounds();
+
+                        g.setFont(new Font(Font.SANS_SERIF,Font.BOLD,14));
+
+                        if (exchange.getEffectivePrimaryPlayersBalanceDelta()>0)
+                            g.setColor(new Color(15, 182, 23));
+                        else
+                            g.setColor(new Color(190, 25, 0));
+
+                        g.fill3DRect(r1.x+r1.width-90,r1.y+r1.height,90,23,false);
+
+                        g.setColor(Color.white);
+
+                        g.drawString((exchange.getEffectivePrimaryPlayersBalanceDelta()>0?"+":"")+((int)exchange.getEffectivePrimaryPlayersBalanceDelta()),r1.x+r1.width-90+3,r1.y+r1.height+18);
+
+                        if (exchange.getEffectiveSecondaryPlayersBalanceDelta()>0)
+                            g.setColor(new Color(15, 182, 23));
+                        else
+                            g.setColor(new Color(190, 25, 0));
+
+                        g.fill3DRect(r2.x+r2.width-90,r2.y+r2.height,90,23,false);
+
+                        g.setColor(Color.white);
+
+                        g.drawString((exchange.getEffectiveSecondaryPlayersBalanceDelta()>0?"+":"")+((int)exchange.getEffectiveSecondaryPlayersBalanceDelta()),r2.x+r2.width-90+3,r2.y+r2.height+18);
+
+                    } catch (Exchange.TransferNotCommittedException e) {
+                        e.printStackTrace();
+                        throw new RuntimeException(e);
+                    }
+
+                }
+
             }
 
-            public void showTransaction(Transfer t){
-                transfer = t;
+            public void showTransaction(Transfer transfer,Exchange exchange){
+                this.transfer = transfer;
+                this.exchange = exchange;
                 this.validate();
                 this.repaint();
 
@@ -181,15 +219,15 @@ public class PlayersGame extends Game {
 
         }
 
-        public void showTransaction(Transfer transfer){
+        public void showTransaction(Transfer transfer, Exchange exchange){
             if (panel!=null)
-                panel.showTransaction(transfer);
+                panel.showTransaction(transfer,exchange);
         }
 
         public JPanel getPanel(){
             panel = new Panel(new RadialLayout());
 
-            panel.setBackground(Color.WHITE);
+            panel.setBackground(new Color(66, 219, 222));
 
             ArrayList<PlayerInterface> players = new ArrayList<PlayerInterface>(getPlayers());
 
@@ -224,20 +262,33 @@ public class PlayersGame extends Game {
     }
 
     protected void acknowledgeTransaction(final Transfer t){
-        //getPlayersSelf().pauseAWhile(2000);
+        //showTransferInGUI(t);
         new Thread(){
             public void run(){
-                try{Thread.sleep(2000);}catch(InterruptedException ie){}
+                try{
+                    Thread.sleep(2500);
+                }catch(InterruptedException ie){
+
+                }
                 getPlayersSelf().sendMessageWithRole(
                         playersSelf.getAgentWithRole("investment_game", getGameId(), "coordinator"),
                         new ActMessage((t.getType()== Transfer.TYPE_A?"processed_transfer_A":"processed_transfer_B"),getPlayersSelf().getPlayersName()),
                         "player");
             }
         }.start();
-//        getPlayersSelf().sendMessageWithRole(
-//                playersSelf.getAgentWithRole("investment_game", getGameId(), "coordinator"),
-//                new ActMessage((t.getType()==Transfer.TYPE_A?"processed_transfer_A":"processed_transfer_B"),getPlayersSelf().getPlayersName()),
-//                "player");
+    }
+
+    public void showTransferInGUI(Transfer transfer){
+        if (gui != null){
+
+            try {
+                gui.showTransaction(transfer,getCurrentRoundExchange());
+            } catch (GameNotStartedYetException e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            }
+
+        }
     }
 
     private void initializeGameStates(){
@@ -250,7 +301,7 @@ public class PlayersGame extends Game {
 
                     @Override
                     public void onEnterState() {
-                        super.onEnterState();    //To change body of overridden methods use File | Settings | File Templates.
+                        super.onEnterState();
                     }
 
                     @Override
@@ -316,8 +367,27 @@ public class PlayersGame extends Game {
                     @Override
                     public GameState processMessageEvent(ActMessage message) {
                         if (message.getAction().equals("decide_on_transfer_A")){
-                            this.messageContent = message.getContent();
-                            return gameStates.get("waiting_1");
+
+                            Transfer transfer = TransferFactory.transferFromMessage(message,game);
+
+                            if (transfer instanceof Exchange.TransferA){
+
+                                Exchange.TransferA transferA = (Exchange.TransferA)transfer;
+
+                                try {
+                                    game.commit(transferA);
+                                    this.messageContent = message.getContent();
+                                    return gameStates.get("waiting_1");
+                                } catch (GameNotStartedYetException e) {
+                                    e.printStackTrace();
+                                } catch (Exchange.TransferAlreadyCommittedException e) {
+                                    e.printStackTrace();
+                                } catch (Exchange.ConstraintViolationException e) {
+                                    e.printStackTrace();
+                                }
+
+                            }
+
                         }
                         return this;
                     }
@@ -348,8 +418,27 @@ public class PlayersGame extends Game {
                     @Override
                     public GameState processMessageEvent(ActMessage message) {
                         if (message.getAction().equals("decide_on_transfer_B")){
-                            this.messageContent = message.getContent();
-                            return gameStates.get("waiting_4");
+                            Transfer transfer = TransferFactory.transferFromMessage(message,game);
+
+                            if (transfer instanceof Exchange.TransferB){
+
+                                Exchange.TransferB transferB = (Exchange.TransferB)transfer;
+
+                                try {
+                                    game.commit(transferB);
+                                    this.messageContent = message.getContent();
+                                    return gameStates.get("waiting_4");
+                                } catch (GameNotStartedYetException e) {
+                                    e.printStackTrace();
+                                } catch (Exchange.TransferAlreadyCommittedException e) {
+                                    e.printStackTrace();
+                                } catch (Exchange.ConstraintViolationException e) {
+                                    e.printStackTrace();
+                                } catch (Exchange.PrimaryTransferNotCommittedYetException e) {
+                                    e.printStackTrace();
+                                }
+
+                            }
                         }
                         return this;
                     }
@@ -363,28 +452,42 @@ public class PlayersGame extends Game {
                 new GameState<PlayersGame>("waiting_1",this){
                     @Override
                     public void onEnterState() {
-                        super.onEnterState();    //To change body of overridden methods use File | Settings | File Templates.
+                        super.onEnterState();
                     }
 
                     @Override
                     public void onExitState() {
-                        super.onExitState();    //To change body of overridden methods use File | Settings | File Templates.
+                        super.onExitState();
                     }
 
                     @Override
                     public GameState processMessageEvent(ActMessage message) {
                         if (message.getAction().equals("info_transfer_A")){
 
-                            Transfer transfer = game.transfer(message);
+                            Transfer transfer = TransferFactory.transferFromMessage(message,game);
 
-                            acknowledgeTransaction(transfer);
+                            if (transfer instanceof Exchange.TransferA){
 
-                            if (transfer != null){
-                                game.setPlayerAtTurnA(transfer.getSender());
+                                Exchange.TransferA transferA = (Exchange.TransferA)transfer;
 
-                                agent.getLogger().log(Level.INFO,"  *** player's "+game.getPlayersSelf().getPlayersName()+" playerAtTurnA is now "+game.getPlayerAtTurnA().getPlayersName());
+                                try {
 
-                                return gameStates.get("waiting_2");
+                                    game.confirmExecute(transferA);
+
+                                    showTransferInGUI(transferA);
+
+                                    acknowledgeTransaction(transferA);
+
+                                    return gameStates.get("waiting_2");
+
+                                } catch (GameNotStartedYetException e) {
+                                    e.printStackTrace();
+                                } catch (Exchange.ConstraintViolationException e) {
+                                    e.printStackTrace();
+                                } catch (Exchange.TransferNotCommittedException e) {
+                                    e.printStackTrace();
+                                }
+
                             }
 
                         }
@@ -402,23 +505,53 @@ public class PlayersGame extends Game {
 
                     @Override
                     public void onEnterState() {
-                        super.onEnterState();    //To change body of overridden methods use File | Settings | File Templates.
+                        super.onEnterState();
                     }
 
                     @Override
                     public void onExitState() {
-                        super.onExitState();    //To change body of overridden methods use File | Settings | File Templates.
+                        super.onExitState();
                     }
 
                     @Override
                     public GameState processMessageEvent(ActMessage message) {
                         if (message.getAction().equals("info_transfer_B")){
 
-                            Transfer t = game.transfer(message);
+                            Transfer transfer = TransferFactory.transferFromMessage(message,game);
 
-                            acknowledgeTransaction(t);
+                            if (transfer instanceof Exchange.TransferB){
 
-                            return gameStates.get("waiting_3");
+                                Exchange.TransferB transferB = (Exchange.TransferB)transfer;
+
+                                try {
+
+                                    game.commit(transferB);
+
+                                    showTransferInGUI(transferB);
+
+                                    game.confirmExecute(transferB);
+
+                                    acknowledgeTransaction(transferB);
+
+                                    return gameStates.get("waiting_3");
+
+                                } catch (GameNotStartedYetException e) {
+                                    e.printStackTrace();
+                                } catch (Exchange.TransferAlreadyCommittedException e) {
+                                    e.printStackTrace();
+                                } catch (Exchange.ConstraintViolationException e) {
+                                    e.printStackTrace();
+                                } catch (Exchange.PrimaryTransferNotCommittedYetException e) {
+                                    e.printStackTrace();
+                                } catch (GameIsOverException e) {
+                                    e.printStackTrace();
+                                } catch (RoundNotFinalizedYetException e) {
+                                    e.printStackTrace();
+                                } catch (Exchange.TransferNotCommittedException e) {
+                                    e.printStackTrace();
+                                }
+
+                            }
 
                         }
                         return this;
@@ -435,25 +568,84 @@ public class PlayersGame extends Game {
 
                     @Override
                     public void onEnterState() {
-                        super.onEnterState();    //To change body of overridden methods use File | Settings | File Templates.
+                        super.onEnterState();
                     }
 
                     @Override
                     public void onExitState() {
-                        super.onExitState();    //To change body of overridden methods use File | Settings | File Templates.
+                        super.onExitState();
                     }
 
                     @Override
                     public GameState processMessageEvent(ActMessage message) {
                         if (message.getAction().startsWith("info_transfer_")){
 
-                            Transfer t = game.transfer(message);
+                            Transfer transfer = TransferFactory.transferFromMessage(message,game);
 
-                            acknowledgeTransaction(t);
+                            if (transfer instanceof Exchange.TransferA){
 
-                            return gameStates.get("waiting_3");
+                                Exchange.TransferA transferA = (Exchange.TransferA) transfer;
+
+                                try {
+
+                                    game.commit(transferA);
+
+                                    showTransferInGUI(transferA);
+
+                                    game.confirmExecute(transferA);
+
+                                    acknowledgeTransaction(transferA);
+
+                                    return gameStates.get("waiting_3");
+
+                                } catch (GameNotStartedYetException e) {
+                                    e.printStackTrace();
+                                } catch (Exchange.TransferAlreadyCommittedException e) {
+                                    e.printStackTrace();
+                                } catch (Exchange.ConstraintViolationException e) {
+                                    e.printStackTrace();
+                                } catch (Exchange.TransferNotCommittedException e) {
+                                    e.printStackTrace();
+                                }
+
+                            }
+
+                            if (transfer instanceof Exchange.TransferB){
+
+                                Exchange.TransferB transferB = (Exchange.TransferB) transfer;
+
+                                try {
+
+                                    game.commit(transferB);
+
+                                    showTransferInGUI(transferB);
+
+                                    game.confirmExecute(transferB);
+
+                                    acknowledgeTransaction(transferB);
+
+                                    return gameStates.get("waiting_3");
+
+                                } catch (GameNotStartedYetException e) {
+                                    e.printStackTrace();
+                                } catch (Exchange.TransferAlreadyCommittedException e) {
+                                    e.printStackTrace();
+                                } catch (Exchange.ConstraintViolationException e) {
+                                    e.printStackTrace();
+                                } catch (Exchange.PrimaryTransferNotCommittedYetException e) {
+                                    e.printStackTrace();
+                                } catch (GameIsOverException e) {
+                                    e.printStackTrace();
+                                } catch (RoundNotFinalizedYetException e) {
+                                    e.printStackTrace();
+                                } catch (Exchange.TransferNotCommittedException e) {
+                                    e.printStackTrace();
+                                }
+
+                            }
 
                         }
+
                         if (message.getAction().equals("your_turn_A")){
                             return gameStates.get("my_turn_A");
                         }
@@ -476,23 +668,47 @@ public class PlayersGame extends Game {
                 new GameState<PlayersGame>("waiting_4",this){
                     @Override
                     public void onEnterState() {
-                        super.onEnterState();    //To change body of overridden methods use File | Settings | File Templates.
+                        super.onEnterState();
                     }
 
                     @Override
                     public void onExitState() {
-                        super.onExitState();    //To change body of overridden methods use File | Settings | File Templates.
+                        super.onExitState();
                     }
 
                     @Override
                     public GameState processMessageEvent(ActMessage message) {
                         if (message.getAction().equals("info_transfer_B")){
 
-                            Transfer t = game.transfer(message);
+                            Transfer transfer = TransferFactory.transferFromMessage(message, game);
 
-                            acknowledgeTransaction(t);
+                            if (transfer instanceof Exchange.TransferB){
 
-                            return gameStates.get("waiting_3");
+                                Exchange.TransferB transferB = (Exchange.TransferB)transfer;
+
+                                try {
+
+                                    showTransferInGUI(transferB);
+
+                                    game.confirmExecute(transferB);
+
+                                    acknowledgeTransaction(transferB);
+
+                                    return gameStates.get("waiting_3");
+
+                                } catch (GameNotStartedYetException e) {
+                                    e.printStackTrace();
+                                } catch (Exchange.ConstraintViolationException e) {
+                                    e.printStackTrace();
+                                } catch (GameIsOverException e) {
+                                    e.printStackTrace();
+                                } catch (RoundNotFinalizedYetException e) {
+                                    e.printStackTrace();
+                                } catch (Exchange.TransferNotCommittedException e) {
+                                    e.printStackTrace();
+                                }
+
+                            }
 
                         }
                         return this;
@@ -509,17 +725,21 @@ public class PlayersGame extends Game {
 
                     @Override
                     public void onEnterState() {
-                        super.onEnterState();    //To change body of overridden methods use File | Settings | File Templates.
+                        try {
+                            game.endGame();
+                        } catch (GameNotStartedYetException e) {
+                            e.printStackTrace();
+                        }
                     }
 
                     @Override
                     public void onExitState() {
-                        super.onExitState();    //To change body of overridden methods use File | Settings | File Templates.
+                        super.onExitState();
                     }
 
                     @Override
                     public GameState processMessageEvent(ActMessage message) {
-                        return super.processMessageEvent(message);    //To change body of overridden methods use File | Settings | File Templates.
+                        return this;
                     }
                 }
 
@@ -542,14 +762,6 @@ public class PlayersGame extends Game {
         }
 
         return gui.getPanel();
-    }
-
-    @Override
-    public Transfer transfer(ActMessage message) {
-        Transfer t = super.transfer(message);
-        if (gui != null)
-            gui.showTransaction(t);
-        return t;
     }
 
     public void enableModeSelectPlayer(boolean enable){

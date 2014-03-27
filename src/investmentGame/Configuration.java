@@ -11,4 +11,6 @@ public class Configuration {
 
     public static final String picturePath = "/Users/martin/IdeaProjects/InvestmentGame/src/investmentGame/pictures";
 
+    public static final int transferAMultiplier = 3;
+
 }

@@ -1,5 +1,8 @@
 package investmentGame.actor;
 
+import investmentGame.Configuration;
+import investmentGame.actor.game.Exchange;
+import investmentGame.actor.game.Game;
 import investmentGame.actor.game.PlayerInterface;
 import investmentGame.actor.game.Transfer;
 import madkit.message.ActMessage;
@@ -114,7 +117,8 @@ public class HumanPlayerAvatar extends Player {
 
             JPanel inputPanel = new JPanel(new BorderLayout());
 
-            final JTextField amountInput = new JTextField("0",7);
+            final JTextField amountInput = new JTextField("",7);
+            amountInput.setText(""+(int)(getCreditBalance()/2));
 
             inputPanel.add(amountInput,BorderLayout.WEST);
 
@@ -129,23 +133,52 @@ public class HumanPlayerAvatar extends Player {
                             new Thread() {
                                 @Override
                                 public void run() {
+
+                                    try {
+                                        game.simulateCommit(new Exchange.TransferA(HumanPlayerAvatar.this,playerSelected,value,Configuration.transferAMultiplier));
+                                    } catch (Game.GameNotStartedYetException e1) {
+                                        e1.printStackTrace();
+                                        throw new RuntimeException(e1);
+                                    } catch (Exchange.TransferAlreadyCommittedException e1) {
+                                        e1.printStackTrace();
+                                        throw new RuntimeException(e1);
+                                    } catch(Exchange.InsufficientCreditBalance e1){
+                                        JOptionPane.showMessageDialog(panel,"Du kannst leider nicht "+(int)e1.getAmountAttemptedToTransfer()+" Punkte an "+playerSelected.getPlayersName()+" überweisen, da Du nur "+(int)e1.getBalance()+" hast.","Eingabefehler",JOptionPane.WARNING_MESSAGE);
+                                        amountInput.setText(""+(int)(getCreditBalance()/2));
+                                        return;
+                                    }catch (Exchange.ConstraintViolationException e1) {
+                                        e1.printStackTrace();
+                                        throw new RuntimeException(e1);
+                                    } catch (Transfer.InvalidTransferException e1) {
+                                        e1.printStackTrace();
+                                        throw new RuntimeException(e1);
+                                    }
+
                                     controlPanel.remove(controlPanelB);
                                     controlPanel.updateUI();
                                     panel.revalidate();
                                     panel.updateUI();
 
-                                    decideOnTransfer(new Transfer(Transfer.TYPE_A, HumanPlayerAvatar.this, playerSelected, value));
+                                    try {
+                                        decideOnTransfer(/*new Transfer(Transfer.TYPE_A, HumanPlayerAvatar.this, playerSelected, value)*/new Exchange.TransferA(HumanPlayerAvatar.this,playerSelected,value, Configuration.transferAMultiplier));
+                                    } catch (Transfer.InvalidTransferException e1) {
+                                        e1.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                                    }
                                 }
                             }.start();
                             //pause(1000);
                             return;
+                        }else{
+                            JOptionPane.showMessageDialog(panel,"Bitte gib eine positive Zahl ein!","Eingabefehler",JOptionPane.WARNING_MESSAGE);
+                            amountInput.setText(""+(int)(getCreditBalance()/2));
                         }
                     }catch (NumberFormatException nfe){
-
+                        JOptionPane.showMessageDialog(panel,"Bitte gib eine Zahl ein!","Eingabefehler",JOptionPane.WARNING_MESSAGE);
+                        amountInput.setText(""+(int)(getCreditBalance()/2));
                     }
-                    JOptionPane.showMessageDialog(controlPanelB,"Ungültige Eingabe. Versuche es noch einmal!","Eingabefehler",JOptionPane.WARNING_MESSAGE);
+                    //JOptionPane.showMessageDialog(controlPanelB,"Ungültige Eingabe. Versuche es noch einmal!","Eingabefehler",JOptionPane.WARNING_MESSAGE);
 
-                    amountInput.setText("0");
+                    //amountInput.setText("0");
 
                 }
             });
@@ -196,23 +229,74 @@ public class HumanPlayerAvatar extends Player {
                             new Thread() {
                                 @Override
                                 public void run() {
+
+                                    try {
+                                        PlayerInterface sender = game.getCurrentRoundExchange().getTransferA().getSender();
+
+                                        try {
+                                            game.simulateCommit(new Exchange.TransferB(HumanPlayerAvatar.this,sender,value));
+                                        } catch (Game.GameNotStartedYetException e1) {
+                                            e1.printStackTrace();
+                                            throw new RuntimeException(e1);
+                                        } catch (Exchange.TransferAlreadyCommittedException e1) {
+                                            e1.printStackTrace();
+                                            throw new RuntimeException(e1);
+                                        } catch(Exchange.InsufficientCreditBalance e1){
+                                            JOptionPane.showMessageDialog(panel,"Du kannst leider nicht "+(int)e1.getAmountAttemptedToTransfer()+" Punkte zurück überweisen, da Du nur "+(int)e1.getBalance()+" hast.","Geht nicht",JOptionPane.WARNING_MESSAGE);
+                                            amountInput.setText(""+(int)(e1.getBalance()/2));
+                                            return;
+                                        } catch(Exchange.AmountBGreaterThanAmountReceivedInTransferA e1){
+                                            JOptionPane.showMessageDialog(panel,"Du kannst maximal "+e1.getAmountReceivedTransferA()+" Punkte zurück überweisen (so viel wie Du gerade von "+sender.getPlayersName()+" bekommen hast)","Geht nicht",JOptionPane.WARNING_MESSAGE);
+                                            amountInput.setText(""+(int)(e1.getAmountReceivedTransferA()/2));
+                                            return;
+                                        }catch (Exchange.ConstraintViolationException e1) {
+                                            e1.printStackTrace();
+                                            throw new RuntimeException(e1);
+                                        } catch (Exchange.PrimaryTransferNotCommittedYetException e1) {
+                                            e1.printStackTrace();
+                                            throw new RuntimeException(e1);
+                                        } catch (Transfer.InvalidTransferException e1) {
+                                            e1.printStackTrace();
+                                            throw new RuntimeException(e1);
+                                        }
+
+                                    } catch (Exchange.TransferNotCommittedException e1) {
+                                        e1.printStackTrace();
+                                        throw new RuntimeException(e1);
+                                    } catch (Game.GameNotStartedYetException e1) {
+                                        e1.printStackTrace();
+                                        throw new RuntimeException(e1);
+                                    }
+
                                     controlPanel.remove(controlPanelC);
                                     controlPanel.updateUI();
                                     panel.revalidate();
                                     panel.updateUI();
 
-                                    decideOnTransfer(new Transfer(Transfer.TYPE_B, HumanPlayerAvatar.this, game.getPlayerAtTurnA(), value));
+                                    try {
+                                        decideOnTransfer(/*new Transfer(Transfer.TYPE_B, HumanPlayerAvatar.this, game.getPlayerAtTurnA(), value)*/new Exchange.TransferB(HumanPlayerAvatar.this,game.getCurrentRoundExchange().getTransferA().getSender(),value));
+                                    } catch (Transfer.InvalidTransferException e1) {
+                                        e1.printStackTrace();
+                                    } catch (Exchange.TransferNotCommittedException e1) {
+                                        e1.printStackTrace();
+                                    } catch (Game.GameNotStartedYetException e1) {
+                                        e1.printStackTrace();
+                                    }
                                 }
                             }.start();
                             //pause(1000);
                             return;
+                        }else{
+                            JOptionPane.showMessageDialog(panel,"Bitte gib eine positive Zahl ein!","Eingabefehler",JOptionPane.WARNING_MESSAGE);
+                            amountInput.setText("0");
                         }
                     }catch (NumberFormatException nfe){
-
+                        JOptionPane.showMessageDialog(panel,"Bitte gib eine Zahl ein!","Eingabefehler",JOptionPane.WARNING_MESSAGE);
+                        amountInput.setText("0");
                     }
-                    JOptionPane.showMessageDialog(controlPanelB,"Ungültige Eingabe. Versuche es noch einmal!","Eingabefehler",JOptionPane.WARNING_MESSAGE);
+                    //JOptionPane.showMessageDialog(controlPanelB,"Ungültige Eingabe. Versuche es noch einmal!","Eingabefehler",JOptionPane.WARNING_MESSAGE);
 
-                    amountInput.setText("0");
+                    //amountInput.setText("0");
 
                 }
             });
@@ -291,22 +375,21 @@ public class HumanPlayerAvatar extends Player {
     }
 
     @Override
-    public Transfer transferA(PlayerInterface recipient, double credits) {
-        Transfer t = super.transferA(recipient, credits);
+    public void receiveTransfer(Transfer transfer) {
+        super.receiveTransfer(transfer);
+
         if (gui != null){
-            System.err.println("human player "+getPlayersName()+" has gui and will update view to new credit balance "+getCreditBalance()+" now");
             gui.update();
         }
-        return t;
+
     }
 
     @Override
-    public Transfer transferB(PlayerInterface recipient, double credits) {
-        Transfer t = super.transferB(recipient, credits);
+    public void makeTransfer(Transfer transfer) throws Transfer.InvalidTransferException {
+        super.makeTransfer(transfer);
+
         if (gui != null){
-            System.err.println("human player "+getPlayersName()+" has gui and will update view to new credit balance "+getCreditBalance()+" now");
             gui.update();
         }
-        return t;
     }
 }

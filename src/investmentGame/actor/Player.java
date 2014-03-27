@@ -3,9 +3,9 @@ package investmentGame.actor;
 import investmentGame.actor.game.Game;
 import investmentGame.actor.game.ModelPlayer;
 import investmentGame.actor.game.PlayerInterface;
-import investmentGame.actor.game.Transfer;
 import investmentGame.actor.game.player.PlayersGame;
 import investmentGame.actor.game.player.PlayersModelPlayer;
+import investmentGame.actor.game.Transfer;
 import madkit.kernel.Agent;
 import madkit.kernel.AgentAddress;
 import madkit.message.ActMessage;
@@ -62,7 +62,9 @@ public abstract class Player extends Agent implements PlayerInterface {
                 logger.log(Level.INFO, "PLAYER " + getName() + " joined GAME " + game.getGameId());
             }else{
                 if (game!=null){
+
                     game.processMessageEvent(message);
+
                 }
             }
         }
@@ -97,28 +99,6 @@ public abstract class Player extends Agent implements PlayerInterface {
         }
 
         return coordinatorAddress;
-    }
-
-    @Override
-    public Transfer transferA(PlayerInterface recipient, double credits) {
-        getLogger().log(Level.INFO,"I own "+getCreditBalance()+" credits currently. \nI will A-transfer "+credits+" credits to "+recipient.getPlayersName());
-
-        Transfer transfer = this.model.transferA(recipient,credits);
-
-        transfer.setSender(this);
-
-        return transfer;
-    }
-
-    @Override
-    public Transfer transferB(PlayerInterface recipient, double credits) {
-        getLogger().log(Level.INFO,"I own "+getCreditBalance()+" credits currently. \nI will B-transfer "+credits+" credits to "+recipient.getPlayersName());
-
-        Transfer transfer = this.model.transferB(recipient,credits);
-
-        transfer.setSender(this);
-
-        return transfer;
     }
 
 
@@ -160,6 +140,21 @@ public abstract class Player extends Agent implements PlayerInterface {
     @Override
     public void setSelectable(boolean selectable) {
         //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public boolean canMakeTransfer(Transfer transfer) {
+        return this.model.canMakeTransfer(transfer);
+    }
+
+    @Override
+    public void makeTransfer(Transfer transfer) throws Transfer.InvalidTransferException {
+        this.model.makeTransfer(transfer);
+    }
+
+    @Override
+    public void receiveTransfer(Transfer transfer) {
+        this.model.receiveTransfer(transfer);
     }
 
     @Override

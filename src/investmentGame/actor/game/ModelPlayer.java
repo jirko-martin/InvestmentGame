@@ -89,18 +89,16 @@ public class ModelPlayer<GameType extends Game> implements PlayerInterface {
         this.picturePath = picturePath;
     }
 
-    @Override
-    public Transfer transferA(PlayerInterface recipient, double credits) throws OverdrawnException{
-        this.setCreditBalance(this.getCreditBalance() - credits);
-        recipient.setCreditBalance(recipient.getCreditBalance() + (3 * credits));
-        return new Transfer(Transfer.TYPE_A,this,recipient,credits);
+    public void makeTransfer(Transfer transfer) throws Transfer.InvalidTransferException{
+        try{
+            setCreditBalance(getCreditBalance()+transfer.getSendersBalanceDelta());
+        }catch (OverdrawnException e){
+            throw new Transfer.InvalidTransferException("account balance of player "+getPlayersName()+" is not sufficient for making transfer "+transfer);
+        }
     }
 
-    @Override
-    public Transfer transferB(PlayerInterface recipient, double credits) throws OverdrawnException{
-        this.setCreditBalance(this.getCreditBalance() - credits);
-        recipient.setCreditBalance(recipient.getCreditBalance() + credits);
-        return new Transfer(Transfer.TYPE_B,this,recipient,credits);
+    public void receiveTransfer(Transfer transfer){
+        setCreditBalance(getCreditBalance()+transfer.getRecipientsBalanceDelta());
     }
 
     @Override
@@ -167,6 +165,11 @@ public class ModelPlayer<GameType extends Game> implements PlayerInterface {
     @Override
     public void setSelectable(boolean selectable) {
         this.selectable = selectable;
+    }
+
+    @Override
+    public boolean canMakeTransfer(Transfer transfer) {
+        return getCreditBalance()>=transfer.getCreditsTransferred();
     }
 
     public String toString(){

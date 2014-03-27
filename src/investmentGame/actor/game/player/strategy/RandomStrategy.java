@@ -1,6 +1,8 @@
 package investmentGame.actor.game.player.strategy;
 
 import investmentGame.actor.Player;
+import investmentGame.actor.game.Exchange;
+import investmentGame.actor.game.Game;
 import investmentGame.actor.game.PlayerInterface;
 
 import java.util.ArrayList;
@@ -34,8 +36,25 @@ public class RandomStrategy extends Strategy {
 
     @Override
     public double chooseCreditAmountForTransferB(PlayerInterface opponent) {
-        double creditBalance = getPlayer().getCreditBalance();
 
-        return Math.round(Math.random()*creditBalance);
+        try {
+            Exchange currentExchange = getPlayer().getGame().getCurrentRoundExchange();
+            if (currentExchange.transferAWasExecuted()){
+                if (!currentExchange.transferBIsCommitted()){
+
+                    double gainSoFar = currentExchange.getEffectiveSecondaryPlayersBalanceDelta();
+
+                    return Math.round(Math.random()*gainSoFar);
+
+                }else{
+                    throw new RuntimeException("transferB has already been committed to current exchange -- it does not make sense to reconsider it as the decision is already fixed");
+                }
+            }else{
+                throw new RuntimeException("TransferA in current exchange was not executed yet -- unable to decide on amount for transferB reliably");
+            }
+        } catch (Game.GameNotStartedYetException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 }

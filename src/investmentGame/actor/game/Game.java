@@ -17,21 +17,49 @@ import java.util.regex.Pattern;
  */
 public abstract class Game<StateType extends GameState> {
 
+    public static class RoundNotFinalizedYetException extends Exception{
+
+    }
+
+    public static class GameNotStartedYetException extends Exception{
+
+    }
+
+    public static class NoSuchRoundExchangeException extends Exception{
+
+    }
+
+    public static class GameIsOverException extends Exception{
+
+    }
+
+    public static class NoSuchPlayerException extends RuntimeException{
+
+        private String playersName;
+
+        public NoSuchPlayerException(String playersName) {
+            super("Player with name '"+playersName+"' is unknown");
+            this.playersName = playersName;
+        }
+
+        public String getPlayersName() {
+            return playersName;
+        }
+    }
+
     private String gameId;
 
     protected StateType gameState;
 
     protected boolean started = false;
 
-    protected Agent agent;
+    protected boolean over = false;
 
-    private PlayerInterface playerAtTurnA;
+    protected Agent agent;
 
     protected Map<String,PlayerInterface> players = new HashMap<String,PlayerInterface>();
 
-    public String getGameId() {
-        return gameId;
-    }
+    protected Vector<Exchange> exchanges = new Vector<Exchange>();
 
     public Game(String gameId, Agent agent){
         this.gameId = gameId;
@@ -40,12 +68,98 @@ public abstract class Game<StateType extends GameState> {
 
     protected abstract void initialize();
 
+
+    public String getGameId() {
+        return gameId;
+    }
+
     public void start(){
         started = true;
+        exchanges.add(new Exchange(this));
         initialize();
     }
 
-    public void processMessageEvent(ActMessage message){
+    public Exchange getCurrentRoundExchange() throws GameNotStartedYetException {
+        if (isStarted()){
+            return exchanges.lastElement();
+        }else{
+            throw new GameNotStartedYetException();
+        }
+    }
+
+    public Exchange getLastRoundExchange() throws GameNotStartedYetException, NoSuchRoundExchangeException {
+        if (isStarted()){
+            if (exchanges.size()>=2){
+
+                return exchanges.elementAt(exchanges.size()-2);
+
+            }else{
+                throw new NoSuchRoundExchangeException();
+            }
+        }else{
+            throw new GameNotStartedYetException();
+        }
+    }
+
+    protected void nextRound() throws RoundNotFinalizedYetException, GameNotStartedYetException, GameIsOverException {
+
+        if (getCurrentRoundExchange().isCompleteAndExecuted()){
+
+            if (!isOver()){
+
+                exchanges.add(new Exchange(this));
+
+            }else{
+                throw new GameIsOverException();
+            }
+
+        }else{
+            throw new RoundNotFinalizedYetException();
+        }
+
+    }
+
+    public void endGame() throws GameNotStartedYetException {
+        if (isStarted()){
+            if (!getCurrentRoundExchange().isCompleteAndExecuted()){
+                exchanges.removeElementAt(exchanges.size()-1);
+            }
+            over = true;
+        }else{
+            throw new GameNotStartedYetException();
+        }
+    }
+
+    public boolean isOver(){
+        return over;
+    }
+
+    public void commit(Exchange.TransferA transfer) throws GameNotStartedYetException, Exchange.TransferAlreadyCommittedException, Exchange.ConstraintViolationException {
+        getCurrentRoundExchange().commit(transfer);
+    }
+
+    public void simulateCommit(Exchange.TransferA transfer) throws GameNotStartedYetException, Exchange.TransferAlreadyCommittedException, Exchange.ConstraintViolationException {
+        getCurrentRoundExchange().commit(transfer,true);
+    }
+
+    public void commit(Exchange.TransferB transfer) throws GameNotStartedYetException, Exchange.TransferAlreadyCommittedException, Exchange.ConstraintViolationException, Exchange.PrimaryTransferNotCommittedYetException {
+        getCurrentRoundExchange().commit(transfer);
+    }
+
+    public void simulateCommit(Exchange.TransferB transfer) throws GameNotStartedYetException, Exchange.TransferAlreadyCommittedException, Exchange.ConstraintViolationException, Exchange.PrimaryTransferNotCommittedYetException {
+        getCurrentRoundExchange().commit(transfer,true);
+    }
+
+    public void confirmExecute(Exchange.TransferA transfer) throws GameNotStartedYetException, Exchange.TransferNotCommittedException, Exchange.ConstraintViolationException {
+        getCurrentRoundExchange().confirmExecuteTransfer(transfer);
+    }
+
+    public void confirmExecute(Exchange.TransferB transfer) throws GameNotStartedYetException, Exchange.TransferNotCommittedException, Exchange.ConstraintViolationException, RoundNotFinalizedYetException, GameIsOverException {
+        getCurrentRoundExchange().confirmExecuteTransfer(transfer);
+        nextRound();
+    }
+
+    public void processMessageEvent(ActMessage message) {
 
         StateType newState = (StateType)gameState.processMessageEvent(message);
 
@@ -63,36 +177,16 @@ public abstract class Game<StateType extends GameState> {
     }
 
     public PlayerInterface getPlayer(String playersName){
-        return players.get(playersName);
+        if (players.containsKey(playersName)){
+            return players.get(playersName);
+        }else{
+            throw new NoSuchPlayerException(playersName);
+        }
     }
 
-    public Transfer transfer(ActMessage message){
-        if (!message.getAction().startsWith("info_transfer")){
-            //TODO throw Exception
-        }
-        Pattern contentPattern = Pattern.compile("([^<>]+)\\s+<sends>\\s+(\\d+)\\s+<to>\\s+([^<>]+)");
-        Matcher contentMatcher = contentPattern.matcher(message.getContent());
-
-        if (contentMatcher.matches()){
-            agent.getLogger().log(Level.INFO,"transfer "+message.getContent());
-            String sender = contentMatcher.group(1);
-            double credits = Double.parseDouble(contentMatcher.group(2));
-            String recipient = contentMatcher.group(3);
-            if (message.getAction().equals("info_transfer_A")){
-                Transfer transfer = getPlayer(sender).transferA(getPlayer(recipient),credits);
-                if (transfer != null){
-                    this.playerAtTurnA = transfer.getSender();
-                    return transfer;
-                }
-            }else{
-                if (message.getAction().equals("info_transfer_B"))
-                    return getPlayer(sender).transferB(getPlayer(recipient),credits);
-            }
-        }
-        return null;
+    public PlayerInterface getPlayer(PlayerInterface player){
+        return getPlayer(player.getPlayersName());
     }
-
-
 
     public void addPlayer(PlayerInterface player){
 
@@ -153,11 +247,4 @@ public abstract class Game<StateType extends GameState> {
 
     }
 
-    public PlayerInterface getPlayerAtTurnA() {
-        return playerAtTurnA;
-    }
-
-    public void setPlayerAtTurnA(PlayerInterface playerAtTurnA) {
-        this.playerAtTurnA = playerAtTurnA;
-    }
 }

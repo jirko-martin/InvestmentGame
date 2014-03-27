@@ -55,13 +55,4 @@ public class PlayersModelPlayer extends ModelPlayer<PlayersGame> {
         return panel;
     }
 
-    @Override
-    public Transfer transferA(PlayerInterface recipient, double credits) throws OverdrawnException {
-        return super.transferA(recipient, credits);    //To change body of overridden methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public Transfer transferB(PlayerInterface recipient, double credits) throws OverdrawnException {
-        return super.transferB(recipient, credits);    //To change body of overridden methods use File | Settings | File Templates.
-    }
 }

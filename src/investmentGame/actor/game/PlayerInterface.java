@@ -12,10 +12,6 @@ import java.awt.*;
  */
 public interface PlayerInterface{
 
-    public Transfer transferA(PlayerInterface recipient,double credits);
-
-    public Transfer transferB(PlayerInterface recipient,double credits);
-
     public void setCreditBalance(double balance);
 
     public double getCreditBalance();
@@ -33,5 +29,11 @@ public interface PlayerInterface{
     public Game getGame();
 
     public void setSelectable(boolean selectable);
+
+    public boolean canMakeTransfer(Transfer transfer);
+
+    public void makeTransfer(Transfer transfer) throws Transfer.InvalidTransferException;
+
+    public void receiveTransfer(Transfer transfer);
 
 }
