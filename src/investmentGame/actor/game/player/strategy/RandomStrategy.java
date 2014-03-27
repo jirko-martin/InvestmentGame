@@ -5,6 +5,7 @@ import investmentGame.actor.game.Exchange;
 import investmentGame.actor.game.Game;
 import investmentGame.actor.game.PlayerInterface;
 
+import javax.swing.*;
 import java.util.ArrayList;
 
 /**
@@ -56,5 +57,10 @@ public class RandomStrategy extends Strategy {
             e.printStackTrace();
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public JDialog getConfigurationDialog(JComponent parentComponent) {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 }

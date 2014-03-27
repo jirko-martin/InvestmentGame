@@ -3,6 +3,8 @@ package investmentGame.actor.game.player.strategy;
 import investmentGame.actor.Player;
 import investmentGame.actor.game.PlayerInterface;
 
+import javax.swing.*;
+
 /**
  * Created with IntelliJ IDEA.
  * User: martin
@@ -27,4 +29,7 @@ public abstract class Strategy {
     public abstract double chooseCreditAmountForTransferA(PlayerInterface opponent);
 
     public abstract double chooseCreditAmountForTransferB(PlayerInterface opponent);
+
+    public abstract JDialog getConfigurationDialog(JComponent parentComponent);
+
 }
