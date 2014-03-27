@@ -41,7 +41,7 @@ import java.io.Serializable;
  * @author Bryan Scott (for Australian Antarctic Division)
  */
 
-public class RadialLayout implements LayoutManager, Serializable {
+public class RadialLayout implements LayoutManager, Serializable   {
     
     /** For serialization. */
     private static final long serialVersionUID = -7582156799248315534L;
