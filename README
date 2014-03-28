@@ -1,7 +1,7 @@
 About
 =====
-This is InvestmentGame - a MaDKit (Java) based implementation of the well known "investment game". T
-his game structurally resembles the game theoretic prisoner's dilemma scenario.
+This is InvestmentGame - a MaDKit (Java) based implementation of the well known "investment game".
+This game structurally resembles the game theoretic prisoner's dilemma scenario.
 
 It's a multiplayer game. Any number of human players can play against an arbitrary number of virtual opponents.
 The strategies of the virtual (computer-) players can be configured.
