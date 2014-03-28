@@ -12,6 +12,8 @@ import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.logging.Level;
@@ -140,8 +142,16 @@ public class HumanPlayerAvatar extends Player {
 
             inputPanel.add(amountInput,BorderLayout.WEST);
 
-            JButton okButton = new JButton("OK");
+            final JButton okButton = new JButton("OK");
 
+            amountInput.addKeyListener(new KeyAdapter() {
+                @Override
+                public void keyReleased(KeyEvent e) {
+                    if (e.getKeyCode()==KeyEvent.VK_ENTER){
+                        okButton.doClick();
+                    }
+                }
+            });
             okButton.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
@@ -236,7 +246,16 @@ public class HumanPlayerAvatar extends Player {
 
             inputPanel.add(amountInput,BorderLayout.WEST);
 
-            JButton okButton = new JButton("OK");
+            final JButton okButton = new JButton("OK");
+
+            amountInput.addKeyListener(new KeyAdapter() {
+                @Override
+                public void keyReleased(KeyEvent e) {
+                    if (e.getKeyCode()==KeyEvent.VK_ENTER){
+                        okButton.doClick();
+                    }
+                }
+            });
 
             okButton.addActionListener(new ActionListener() {
                 @Override
