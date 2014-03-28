@@ -12,6 +12,8 @@ import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.logging.Level;
 
 /**
@@ -85,28 +87,44 @@ public class HumanPlayerAvatar extends Player {
 
             inTurn = IN_TURN_A;
 
-            controlPanelA = new JPanel(new BorderLayout());
+            Collection<PlayerInterface> opponents = getOpponents();
 
-            controlPanel.add(controlPanelA,BorderLayout.CENTER);
+            if (opponents.size()>1){
 
-            JLabel questionLabel = new JLabel("Wähle bitte einen anderen Spieler aus!");
+                controlPanelA = new JPanel(new BorderLayout());
 
-            controlPanelA.add(questionLabel, BorderLayout.CENTER);
+                controlPanel.add(controlPanelA,BorderLayout.CENTER);
 
-            controlPanel.updateUI();
+                JLabel questionLabel = new JLabel("Wähle bitte einen anderen Spieler aus!");
 
-            game.enableModeSelectPlayer(true);
+                controlPanelA.add(questionLabel, BorderLayout.CENTER);
+
+                controlPanel.updateUI();
+
+                game.enableModeSelectPlayer(true);
+
+            }else{
+                Iterator<PlayerInterface> playerInterfaceIterator = opponents.iterator();
+                if (playerInterfaceIterator.hasNext())
+                    onMyTurnA2ndStage(playerInterfaceIterator.next());
+            }
         }
 
         public void onMyTurnA2ndStage(final PlayerInterface playerSelected){
 
             game.enableModeSelectPlayer(false);
 
-            controlPanel.remove(controlPanelA);
+            if (controlPanelA != null){
 
-            controlPanel.updateUI();
+                controlPanel.remove(controlPanelA);
 
-            controlPanel.revalidate();
+                controlPanel.updateUI();
+
+                controlPanel.revalidate();
+
+                controlPanelA = null;
+
+            }
 
             controlPanelB = new JPanel(new BorderLayout());
 

@@ -29,6 +29,11 @@ public class Exchange {
         public double getRecipientsBalanceDelta() {
             return +1.0 * ((double)getMultiplier()) * getCreditsTransferred();
         }
+
+        @Override
+        public String describeTransferType() {
+            return "TYPE_A";
+        }
     }
 
     public static class TransferB extends Transfer{
@@ -43,6 +48,11 @@ public class Exchange {
 
         public double getRecipientsBalanceDelta() {
             return +1.0 * getCreditsTransferred();
+        }
+
+        @Override
+        public String describeTransferType() {
+            return "TYPE_B";
         }
     }
 

@@ -1,5 +1,6 @@
 package investmentGame.actor;
 
+import investmentGame.Configuration;
 import investmentGame.actor.game.Transfer;
 import investmentGame.actor.game.coordinator.CoordinatorsGame;
 import investmentGame.actor.game.coordinator.CoordinatorsModelPlayer;
@@ -58,7 +59,7 @@ public class Coordinator extends Agent{
 
                             game.addPlayer(modelPlayer,primaryPlayer);
 
-                            modelPlayer.setCreditBalance(100);
+                            modelPlayer.setCreditBalance(Configuration.initialCreditBalance);
 
                             sendReply(message, new ActMessage("welcome"));
 

@@ -1,5 +1,6 @@
 package investmentGame.actor.game.player;
 
+import investmentGame.Configuration;
 import investmentGame.actor.game.*;
 import investmentGame.actor.Player;
 import madkit.message.ActMessage;
@@ -48,8 +49,6 @@ public class PlayersGame extends Game {
 
                 double b = Math.sqrt(((20*20)*(dy*dy))/((dx*dx)+(dy*dy)));
                 double a = (dx*b)/dy;
-
-                getPlayersSelf().getLogger().log(Level.INFO,"a = "+a+" , b = "+b);
 
                 if (x1<x2){
                     x2 -= (dy>0 ? a : 20);
@@ -116,10 +115,6 @@ public class PlayersGame extends Game {
 
                     Rectangle r1 = transfer.getSender().getGUIView().getBounds();
 
-                    System.err.println("r1="+r1);
-
-                    System.err.println("transfer ... " + transfer);
-
                     Rectangle r2 = transfer.getRecipient().getGUIView().getBounds();
                     
                     Point[] ps1 = {
@@ -148,20 +143,8 @@ public class PlayersGame extends Game {
                             }
                         }
                     
-                    drawArrow(g,p1.x,p1.y,p2.x,p2.y, transfer.getType()== Transfer.TYPE_A?Color.GREEN:Color.ORANGE, transfer.getCreditsTransferred());
+                    drawArrow(g,p1.x,p1.y,p2.x,p2.y, transfer.getType()== Transfer.TYPE_A?Configuration.Colors.transferAArrowColor:Configuration.Colors.transferBArrowColor, transfer.getCreditsTransferred());
 
-
-
-                    (new Thread(){
-                        public void run(){
-                            try{
-                                Thread.sleep(2000);
-                                showTransaction(null,transfer instanceof Exchange.TransferA ? exchange : null);
-                            }catch (InterruptedException e){
-
-                            }
-                        }
-                    }).start();
                 }
 
                 if (exchange != null){
@@ -227,17 +210,22 @@ public class PlayersGame extends Game {
         public JPanel getPanel(){
             panel = new Panel(new RadialLayout());
 
-            panel.setBackground(new Color(66, 219, 222));
+            panel.setBackground(Configuration.Colors.gamePanelBackgroundColor);
 
             ArrayList<PlayerInterface> players = new ArrayList<PlayerInterface>(getPlayers());
 
             if (players.size()==2){
 
-                panel.add(new JPanel());
+                JPanel dummyPanel1 = new JPanel(), dummyPanel2 = new JPanel();
+
+                dummyPanel1.setBackground(Configuration.Colors.gamePanelBackgroundColor);
+                dummyPanel2.setBackground(Configuration.Colors.gamePanelBackgroundColor);
+
+                panel.add(dummyPanel1);
 
                 panel.add(players.get(0).getGUIView());
 
-                panel.add(new JPanel());
+                panel.add(dummyPanel2);
 
                 panel.add(players.get(1).getGUIView());
 
@@ -262,12 +250,17 @@ public class PlayersGame extends Game {
     }
 
     protected void acknowledgeTransaction(final Transfer t){
-        //showTransferInGUI(t);
         new Thread(){
             public void run(){
-                try{
-                    Thread.sleep(2500);
-                }catch(InterruptedException ie){
+
+                if (((int)t.getCreditsTransferred())>=0){
+
+                    try{
+                        Thread.sleep(Configuration.Timings.delayAcknowledgeInfoTransferMSec);
+                    }catch(InterruptedException ie){
+                        ie.printStackTrace();
+                        throw new RuntimeException(ie);
+                    }
 
                 }
                 getPlayersSelf().sendMessageWithRole(
@@ -278,14 +271,37 @@ public class PlayersGame extends Game {
         }.start();
     }
 
-    public void showTransferInGUI(Transfer transfer){
+    public void showTransferInGUI(final Transfer transfer){
         if (gui != null){
 
-            try {
-                gui.showTransaction(transfer,getCurrentRoundExchange());
-            } catch (GameNotStartedYetException e) {
-                e.printStackTrace();
-                throw new RuntimeException(e);
+            if (((int)transfer.getCreditsTransferred())>=0){
+
+                try {
+
+                    final Exchange exchange = getCurrentRoundExchange();
+
+                    gui.showTransaction(transfer,exchange);
+
+                    new Thread(){
+                        public void run(){
+                            try{
+
+                                Thread.sleep(Configuration.Timings.showTransferInGUIForMSec);
+
+                                gui.showTransaction(null, (transfer instanceof Exchange.TransferA) ? exchange : null);
+
+                            }catch (InterruptedException e){
+                                e.printStackTrace();
+                                throw new RuntimeException(e);
+                            }
+                        }
+                    }.start();
+
+                } catch (GameNotStartedYetException e) {
+                    e.printStackTrace();
+                    throw new RuntimeException(e);
+                }
+
             }
 
         }
@@ -323,7 +339,6 @@ public class PlayersGame extends Game {
                                 if (m.matches()){
                                     game.getPlayersSelf().getLogger().log(Level.INFO,"  --->  PLAYER "+game.getPlayersSelf().getPlayersName()+" add model player "+m.group(1)+" / "+m.group(3));
                                     ModelPlayer player = new PlayersModelPlayer(game,m.group(1),m.group(3));
-                                    //player.setCreditBalance(Double.parseDouble(m.group(2)));
                                     game.addPlayer(player);
                                     game.getPlayer(m.group(1)).setCreditBalance(Double.parseDouble(m.group(2)));
                                 }

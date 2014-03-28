@@ -104,7 +104,7 @@ public class JeromesAssistant extends Agent{
         JPanel optionPanel;
         JList<GameSpecification.PlayerSpecification> playersList;
         JButton startButton;
-
+        File pictureFolder = new File(Configuration.picturePath);
         Component activeComponent;
 
         public GUI(JFrame frame,JPanel contentPane){
@@ -114,6 +114,14 @@ public class JeromesAssistant extends Agent{
             contentPane.add(infoPane,BorderLayout.SOUTH);
 
             showMainMenu();
+        }
+
+        public File getPictureFolder() {
+            return pictureFolder;
+        }
+
+        public void setPictureFolder(File pictureFolder) {
+            this.pictureFolder = pictureFolder;
         }
 
         private void setActiveComponent(final Component component){
@@ -157,7 +165,7 @@ public class JeromesAssistant extends Agent{
 
             createNewGameSpecification();
 
-            JPanel gameOptionPanel = new JPanel(new BorderLayout());
+            final JPanel gameOptionPanel = new JPanel(new BorderLayout());
 
             JPanel mainOptions = new JPanel(new BorderLayout());
 
@@ -263,9 +271,8 @@ public class JeromesAssistant extends Agent{
                         public void actionPerformed(ActionEvent e) {
                             getGameSpecification().addPlayerSpecification(new GameSpecification.HumanPlayerSpecification(nameInputField.getText().trim()));
                             Vector<GameSpecification.PlayerSpecification> listspec = new Vector<GameSpecification.PlayerSpecification>();
-                            Iterator<GameSpecification.PlayerSpecification> plIt = getGameSpecification().getPlayerSpecifications().iterator();
-                            while (plIt.hasNext()){
-                                listspec.add(plIt.next());
+                            for (GameSpecification.PlayerSpecification playerSpecification : getGameSpecification().getPlayerSpecifications()) {
+                                listspec.add(playerSpecification);
                             }
                             playersList.setListData(listspec);
                             if (listspec.size()>=2){
@@ -320,7 +327,17 @@ public class JeromesAssistant extends Agent{
 
             addComputerPlayerButton.addActionListener(new ActionListener() {
 
-                JList<File> pictureList;
+                File pictureFile;
+
+                ImageIcon picture;
+
+                public File getPictureFile() {
+                    return pictureFile;
+                }
+
+                public void setPictureFile(File pictureFile) {
+                    this.pictureFile = pictureFile;
+                }
 
                 @Override
                 public void actionPerformed(ActionEvent e) {
@@ -350,13 +367,12 @@ public class JeromesAssistant extends Agent{
                         @Override
                         public void actionPerformed(ActionEvent e) {
 
-                            String picturePath = pictureList.getSelectedValue().getAbsolutePath();
+                            String picturePath = ((getPictureFile()!=null && getPictureFile().exists()) ? getPictureFile().getAbsolutePath() : null);
 
                             getGameSpecification().addPlayerSpecification(new GameSpecification.ComputerPlayerSpecification("COMPUTER-SPIELER", picturePath));
                             Vector<GameSpecification.PlayerSpecification> listspec = new Vector<GameSpecification.PlayerSpecification>();
-                            Iterator<GameSpecification.PlayerSpecification> plIt = getGameSpecification().getPlayerSpecifications().iterator();
-                            while (plIt.hasNext()){
-                                listspec.add(plIt.next());
+                            for (GameSpecification.PlayerSpecification playerSpecification : getGameSpecification().getPlayerSpecifications()) {
+                                listspec.add(playerSpecification);
                             }
                             playersList.setListData(listspec);
                             if (listspec.size()>=2){
@@ -376,81 +392,92 @@ public class JeromesAssistant extends Agent{
 
                     JPanel picturePane = new JPanel(new BorderLayout());
 
-                    picturePane.setBorder(new TitledBorder("Wie sieht der Spieler aus?"));
+                    final JPanel picturePreviewPane = new JPanel(new BorderLayout());
+                    picturePreviewPane.setBackground(Color.WHITE);
 
-                    File pictureFolder = new File(Configuration.picturePath);
+                    final JLabel pictureLabel = new JLabel("");
+                    picturePreviewPane.add(pictureLabel,BorderLayout.CENTER);
+
+                    picturePane.add(picturePreviewPane,BorderLayout.CENTER);
+
+                    picturePane.setBorder(new TitledBorder("Wie sieht der Spieler aus?"));
 
                     getLogger().log(Level.INFO," ... picture folder exists? "+(pictureFolder.exists()?"yes":"no"));
 
-                    pictureList = new JList<File>(pictureFolder.listFiles(new FileFilter() {
+                    JButton choosePictureButton = new JButton("Bild auswählen");
+
+                    choosePictureButton.addActionListener(new ActionListener() {
                         @Override
-                        public boolean accept(File pathname) {
-                            return (new ImageIcon(pathname.getAbsolutePath()).getImage() != null); //TODO check whether this works
-                        }
-                    }));
+                        public void actionPerformed(ActionEvent e) {
+                            JFileChooser chooser = new JFileChooser();
+                            ImagePreviewPanel preview = new ImagePreviewPanel();
+                            chooser.setAccessory(preview);
+                            chooser.addPropertyChangeListener(preview);
 
-                    class PictureCellRenderer extends JLabel implements ListCellRenderer {
-                        public PictureCellRenderer() {
-                            setOpaque(true);
-                        }
-
-                        public Component getListCellRendererComponent(JList list,
-                                                                      Object value,
-                                                                      int index,
-                                                                      boolean isSelected,
-                                                                      boolean cellHasFocus) {
-
-                            File file = (File)value;
-
-                            setText(file.getName());
-
-                            ImageIcon icon = new ImageIcon(file.getAbsolutePath());
-
-                            Image image = icon.getImage();
-
-                            if (icon.getIconHeight()>icon.getIconWidth()){
-                                setIcon(new ImageIcon(image.getScaledInstance(-1,110,Image.SCALE_SMOOTH)));
-                            }else{
-                                setIcon(new ImageIcon(image.getScaledInstance(110,-1,Image.SCALE_SMOOTH)));
+                            if (getPictureFolder().exists() && getPictureFolder().isDirectory()){
+                                chooser.setCurrentDirectory(getPictureFolder());
                             }
 
-                            Color background;
-                            Color foreground;
+                            chooser.setFileFilter(new javax.swing.filechooser.FileFilter() {
+                                @Override
+                                public boolean accept(File f) {
 
-                            // check if this cell represents the current DnD drop location
-                            JList.DropLocation dropLocation = list.getDropLocation();
-                            if (dropLocation != null
-                                    && !dropLocation.isInsert()
-                                    && dropLocation.getIndex() == index) {
+                                    String name = f.getAbsolutePath();
 
-                                background = Color.BLUE;
-                                foreground = Color.WHITE;
+                                    return ((name != null) &&
+                                            name.toLowerCase().endsWith(".jpg") ||
+                                            name.toLowerCase().endsWith(".jpeg") ||
+                                            name.toLowerCase().endsWith(".gif") ||
+                                            name.toLowerCase().endsWith(".png"));
+                                }
 
-                                // check if this cell is selected
-                            } else if (isSelected) {
-                                background = new Color(151, 222, 212);
-                                foreground = Color.WHITE;
+                                @Override
+                                public String getDescription() {
+                                    return "Bilder";
+                                }
+                            });
 
-                                // unselected, and not the DnD drop location
-                            } else {
-                                background = Color.WHITE;
-                                foreground = Color.BLACK;
-                            };
+                            int returnVal = chooser.showOpenDialog(gameOptionPanel);
 
-                            setBackground(background);
-                            setForeground(foreground);
+                            if (returnVal == JFileChooser.APPROVE_OPTION){
 
-                            return this;
+                                File pictureFile = chooser.getSelectedFile();
+
+                                ImageIcon imageRaw = new ImageIcon(pictureFile.getAbsolutePath());
+
+                                Image scaledImage;
+
+                                if (imageRaw.getIconHeight()>0){
+
+                                    setPictureFile(pictureFile);
+                                    setPictureFolder(pictureFile.getParentFile());
+
+                                    if (imageRaw.getIconHeight()>imageRaw.getIconWidth()){
+
+                                        scaledImage = imageRaw.getImage().getScaledInstance(-1,250,Image.SCALE_SMOOTH);
+
+                                    }else{
+
+                                        scaledImage = imageRaw.getImage().getScaledInstance(250,-1,Image.SCALE_SMOOTH);
+
+                                    }
+
+                                    picture = new ImageIcon(scaledImage);
+
+                                    pictureLabel.setIcon(picture);
+                                    pictureLabel.setHorizontalAlignment(JLabel.CENTER);
+                                    pictureLabel.setVerticalAlignment(JLabel.CENTER);
+
+                                    pictureLabel.repaint();
+
+                                }
+
+                            }
+
                         }
-                    }
+                    });
 
-                    pictureList.setCellRenderer(new PictureCellRenderer());
-
-                    pictureList.setFixedCellHeight(120);
-
-                    JScrollPane pictureListScrollPane = new JScrollPane(pictureList);
-
-                    picturePane.add(pictureListScrollPane,BorderLayout.CENTER);
+                    picturePane.add(choosePictureButton,BorderLayout.SOUTH);
 
                     picturePane.setPreferredSize(new Dimension(400,300));
 
@@ -512,13 +539,8 @@ public class JeromesAssistant extends Agent{
     @Override
     protected void live() {
 
-        ActMessage message;
-
-//        while ((message=(ActMessage)waitNextMessage())!=null){
-//
-//        }
         while (true){
-            pause(10000);
+            pause(60000);
         }
 
     }
@@ -526,7 +548,7 @@ public class JeromesAssistant extends Agent{
     @Override
     protected void activate() {
 
-        setLogLevel(Level.FINEST);
+        setLogLevel(Level.INFO);
         createGroupIfAbsent("investment_game", "tout_le_monde");
         requestRole("investment_game","tout_le_monde","jeromes_assistant");
 
@@ -622,15 +644,9 @@ public class JeromesAssistant extends Agent{
 
         String requestGameSpec = "<new_game> <for> "+gameSpecification.getPlayerSpecifications().size()+" <players> <having> "+gameSpecification.getRounds()+" <rounds> <invite> 0 <computer_players>";
 
-        getLogger().log(Level.INFO,"pos0");
-
         ActMessage reply = (ActMessage)sendMessageWithRoleAndWaitForReply(coordinatorAddress,new ActMessage("request_game",requestGameSpec),"jeromes_assistant");
 
-        getLogger().log(Level.INFO,"pos1");
-
         if (reply.getAction().equals("game_initialized")){
-
-            getLogger().log(Level.INFO,"pos2");
 
             final String gameId = reply.getContent();
 
@@ -638,8 +654,6 @@ public class JeromesAssistant extends Agent{
             Iterator<Player> playerIterator = players.iterator();
 
             while (playerIterator.hasNext()){
-
-                getLogger().log(Level.INFO,"pos3");
 
                 final Player player = playerIterator.next();
                 final boolean isPrimaryPlayer = player.equals(primaryPlayer);
@@ -652,8 +666,6 @@ public class JeromesAssistant extends Agent{
                 }.start();
 
             }
-            getLogger().log(Level.INFO,"pos4");
-
         }else{
             //TODO throw Exception
         }

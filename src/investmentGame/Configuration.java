@@ -1,5 +1,7 @@
 package investmentGame;
 
+import java.awt.*;
+
 /**
  * Created with IntelliJ IDEA.
  * User: martin
@@ -12,5 +14,25 @@ public class Configuration {
     public static final String picturePath = "/Users/martin/IdeaProjects/InvestmentGame/src/investmentGame/pictures";
 
     public static final int transferAMultiplier = 3;
+
+    public static final int initialCreditBalance = 100;
+
+    public static class Colors {
+
+        public static final Color gamePanelBackgroundColor = new Color(66, 219, 222);
+
+        public static final Color transferAArrowColor = Color.GREEN;
+
+        public static final Color transferBArrowColor = Color.ORANGE;
+
+    }
+
+    public static class Timings{
+
+        public static final long showTransferInGUIForMSec = 2000;
+
+        public static final long delayAcknowledgeInfoTransferMSec = 2500;
+
+    }
 
 }

@@ -68,7 +68,7 @@ public abstract class Transfer<SenderType extends PlayerInterface,RecipientType 
     }
 
     public String toString(){
-        return "Transfer[ from = ("+sender+") , to = ("+recipient+") , amount = ("+creditsTransferred+") ]";
+        return "TRANSFER {<"+describeTransferType()+">("+(applied?"applied":"not_applied")+")[ from = ("+sender+") , to = ("+recipient+") , amount = ("+creditsTransferred+") ]}";
     }
 
     public boolean equals(Transfer other){
@@ -99,4 +99,7 @@ public abstract class Transfer<SenderType extends PlayerInterface,RecipientType 
     public abstract double getSendersBalanceDelta();
 
     public abstract double getRecipientsBalanceDelta();
+
+    public abstract String describeTransferType();
+
 }

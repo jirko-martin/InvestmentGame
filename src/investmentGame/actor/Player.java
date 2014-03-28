@@ -166,7 +166,6 @@ public abstract class Player extends Agent implements PlayerInterface {
         Iterator<PlayerInterface> playerIterator = game.getPlayers().iterator();
         Set<PlayerInterface> opponents = new HashSet<PlayerInterface>();
         while (playerIterator.hasNext()){
-            logger.log(Level.INFO,"next opponent");
             PlayerInterface player = playerIterator.next();
             if (!player.getPlayersName().equals(getPlayersName()))
                 opponents.add(player);
