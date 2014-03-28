@@ -17,8 +17,20 @@ import java.util.ArrayList;
  */
 public class RandomStrategy extends Strategy {
 
-    public RandomStrategy(Player player){
-        super(player);
+
+    @Override
+    public String getStrategyName() {
+        return "Zufall (Gleichverteilung)";
+    }
+
+    @Override
+    public String toString() {
+        return getStrategyName();
+    }
+
+    @Override
+    public String getFullDescription() {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @Override
@@ -60,7 +72,12 @@ public class RandomStrategy extends Strategy {
     }
 
     @Override
-    public JDialog getConfigurationDialog(JComponent parentComponent) {
+    public boolean isConfigurable() {
+        return false;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public JPanel getConfigurationPanel() {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 }

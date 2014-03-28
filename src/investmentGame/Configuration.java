@@ -1,5 +1,9 @@
 package investmentGame;
 
+import investmentGame.actor.game.player.strategy.GaussianStrategy;
+import investmentGame.actor.game.player.strategy.RandomStrategy;
+import investmentGame.actor.game.player.strategy.Strategy;
+
 import java.awt.*;
 
 /**
@@ -34,5 +38,12 @@ public class Configuration {
         public static final long delayAcknowledgeInfoTransferMSec = 2500;
 
     }
+
+    public static final Class[] strategies = {
+
+            GaussianStrategy.class,
+            RandomStrategy.class
+
+    };
 
 }

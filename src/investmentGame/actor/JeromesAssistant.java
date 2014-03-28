@@ -2,6 +2,7 @@ package investmentGame.actor;
 
 import investmentGame.Configuration;
 import investmentGame.actor.Player;
+import investmentGame.actor.game.player.strategy.Strategy;
 import madkit.kernel.Agent;
 import madkit.kernel.AgentAddress;
 import madkit.message.ActMessage;
@@ -56,14 +57,20 @@ public class JeromesAssistant extends Agent{
 
         public static class ComputerPlayerSpecification extends PlayerSpecification{
 
-            public ComputerPlayerSpecification(String name, String pictureFileName){
+            private Strategy strategy;
+
+            public ComputerPlayerSpecification(String name, String pictureFileName,Strategy strategy){
                 super(name,pictureFileName);
+                this.strategy = strategy;
             }
 
             public String toString(){
                 return "Computer-Spieler "+getName();
             }
 
+            public Strategy getStrategy() {
+                return strategy;
+            }
         }
 
         public static class HumanPlayerSpecification extends PlayerSpecification{
@@ -331,12 +338,24 @@ public class JeromesAssistant extends Agent{
 
                 ImageIcon picture;
 
+                Strategy strategy;
+
+                JPanel strategyConfigurationPanel;
+
                 public File getPictureFile() {
                     return pictureFile;
                 }
 
                 public void setPictureFile(File pictureFile) {
                     this.pictureFile = pictureFile;
+                }
+
+                public Strategy getStrategy() {
+                    return strategy;
+                }
+
+                public void setStrategy(Strategy strategy) {
+                    this.strategy = strategy;
                 }
 
                 @Override
@@ -346,7 +365,7 @@ public class JeromesAssistant extends Agent{
 
                     dialog.setTitle("Neuer Computer-Spieler");
 
-                    dialog.setBounds(frame.getBounds().x,frame.getBounds().y,300,500);
+                    dialog.setBounds(frame.getBounds().x,frame.getBounds().y,750,450);
 
                     JPanel dialogPane = new JPanel(new BorderLayout());
 
@@ -369,7 +388,7 @@ public class JeromesAssistant extends Agent{
 
                             String picturePath = ((getPictureFile()!=null && getPictureFile().exists()) ? getPictureFile().getAbsolutePath() : null);
 
-                            getGameSpecification().addPlayerSpecification(new GameSpecification.ComputerPlayerSpecification("COMPUTER-SPIELER", picturePath));
+                            getGameSpecification().addPlayerSpecification(new GameSpecification.ComputerPlayerSpecification("COMPUTER-SPIELER", picturePath,getStrategy()));
                             Vector<GameSpecification.PlayerSpecification> listspec = new Vector<GameSpecification.PlayerSpecification>();
                             for (GameSpecification.PlayerSpecification playerSpecification : getGameSpecification().getPlayerSpecifications()) {
                                 listspec.add(playerSpecification);
@@ -388,7 +407,7 @@ public class JeromesAssistant extends Agent{
                     dialogPane.add(dialogButtonPane,BorderLayout.SOUTH);
 
                     JPanel mainPane = new JPanel();
-                    mainPane.setLayout(new BoxLayout(mainPane,BoxLayout.Y_AXIS));
+                    mainPane.setLayout(new BorderLayout());
 
                     JPanel picturePane = new JPanel(new BorderLayout());
 
@@ -481,13 +500,69 @@ public class JeromesAssistant extends Agent{
 
                     picturePane.setPreferredSize(new Dimension(400,300));
 
-                    mainPane.add(picturePane);
+                    mainPane.add(picturePane,BorderLayout.WEST);
 
-                    JPanel strategyPane = new JPanel(new BorderLayout());
+                    final JPanel strategyPane = new JPanel(new BorderLayout());
 
                     strategyPane.setBorder(new TitledBorder("Strategie des Spielers"));
 
-                    mainPane.add(strategyPane);
+                    List<Strategy> strategies = new LinkedList<Strategy>();
+
+                    for (int i=0;i<Configuration.strategies.length;i++){
+                        try {
+                            Object strategyCandidate = Configuration.strategies[i].newInstance();
+                            if (strategyCandidate instanceof Strategy){
+                                strategies.add((Strategy)strategyCandidate);
+                            }
+                        } catch (InstantiationException e1) {
+                            e1.printStackTrace();
+                            throw new RuntimeException(e1);
+                        } catch (IllegalAccessException e1) {
+                            e1.printStackTrace();
+                            throw new RuntimeException(e1);
+                        }
+                    }
+
+                    final JComboBox<Strategy> strategySelectionBox = new JComboBox<Strategy>(new Vector<Strategy>(strategies));
+
+                    strategySelectionBox.setSelectedIndex(0);
+
+                    Strategy strategySelected = strategySelectionBox.getItemAt(0);
+
+                    setStrategy(strategySelected);
+
+                    if (strategySelected.isConfigurable()){
+                        strategyConfigurationPanel = strategySelected.getConfigurationPanel();
+                        strategyPane.add(strategyConfigurationPanel,BorderLayout.CENTER);
+                    }
+
+                    strategySelectionBox.addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+
+                            Strategy strategySelected = (Strategy)strategySelectionBox.getSelectedItem();
+
+                            setStrategy(strategySelected);
+
+                            if (strategyConfigurationPanel != null){
+                                strategyPane.remove(strategyConfigurationPanel);
+                                strategyPane.validate();
+                                strategyPane.repaint();
+                                strategyConfigurationPanel = null;
+                            }
+
+                            if (strategySelected.isConfigurable()){
+                                strategyConfigurationPanel = strategySelected.getConfigurationPanel();
+                                strategyPane.add(strategyConfigurationPanel,BorderLayout.CENTER);
+                                strategyPane.validate();
+                                strategyPane.repaint();
+                            }
+                        }
+                    });
+
+                    strategyPane.add(strategySelectionBox,BorderLayout.NORTH);
+
+                    mainPane.add(strategyPane,BorderLayout.CENTER);
 
                     dialogPane.add(mainPane,BorderLayout.CENTER);
 
@@ -620,9 +695,13 @@ public class JeromesAssistant extends Agent{
 
             if (spec instanceof GameSpecification.ComputerPlayerSpecification){
 
-                ComputerPlayer computerPlayer = new ComputerPlayer(spec.getPictureFileName());
+                Strategy strategy = ((GameSpecification.ComputerPlayerSpecification) spec).getStrategy();
 
-                launchAgent(computerPlayer,launchedHumanPlayers==0 && first);
+                ComputerPlayer computerPlayer = new ComputerPlayer(spec.getPictureFileName(),strategy);
+
+                strategy.setPlayer(computerPlayer);
+
+                launchAgent(computerPlayer, launchedHumanPlayers == 0 && first);
 
                 players.add(computerPlayer);
 

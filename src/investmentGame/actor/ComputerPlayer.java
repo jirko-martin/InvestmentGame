@@ -20,9 +20,9 @@ public class ComputerPlayer extends Player {
 
     private static int instanceCounter = 0;
 
-    public ComputerPlayer(String picturePath){
+    public ComputerPlayer(String picturePath,Strategy strategy){
         super("COMPUTER_PLAYER_"+(instanceCounter++),picturePath);
-        strategy = new RandomStrategy(this); //TODO just for the moment!!
+        this.strategy = strategy; //TODO just for the moment!!
     }
 
     @Override

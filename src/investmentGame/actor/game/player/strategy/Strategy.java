@@ -14,14 +14,22 @@ import javax.swing.*;
  */
 public abstract class Strategy {
 
-    private final Player player;
+    private Player player;
 
-    public Strategy(Player player){
-        this.player = player;
+    public abstract String getStrategyName();
+
+    public String toString(){
+        return getStrategyName();
     }
 
-    public Player getPlayer() {
+    public abstract String getFullDescription();
+
+    public Player getPlayer(){
         return player;
+    }
+
+    public void setPlayer(Player player){
+        this.player = player;
     }
 
     public abstract PlayerInterface selectOpponentForTransferA();
@@ -30,6 +38,8 @@ public abstract class Strategy {
 
     public abstract double chooseCreditAmountForTransferB(PlayerInterface opponent);
 
-    public abstract JDialog getConfigurationDialog(JComponent parentComponent);
+    public abstract boolean isConfigurable();
+
+    public abstract JPanel getConfigurationPanel();
 
 }
