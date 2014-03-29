@@ -1,4 +1,4 @@
-package investmentGame.actor;
+package investmentGame.swing;
 
 import javax.swing.*;
 import java.awt.*;

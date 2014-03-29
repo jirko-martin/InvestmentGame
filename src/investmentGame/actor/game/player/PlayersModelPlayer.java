@@ -1,11 +1,9 @@
 package investmentGame.actor.game.player;
 
-import investmentGame.actor.game.Transfer;
 import investmentGame.actor.game.ModelPlayer;
-import investmentGame.actor.game.PlayerInterface;
+import investmentGame.swing.RoundedPanel;
 
 import javax.swing.*;
-import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -30,7 +28,10 @@ public class PlayersModelPlayer extends ModelPlayer<PlayersGame> {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (selectable){
-                    panel.setBorder(new LineBorder(new Color(218, 255, 113), 5));
+                    //panel.setBorder(new LineBorder(new Color(218, 255, 113), 5));
+                    ((RoundedPanel)panel).setShadowColor(new Color(0, 0, 0, 130));
+                    ((RoundedPanel)panel).setShadowAlpha(100);
+                    ((RoundedPanel)panel).setStrokeSize(1);
                     panel.repaint();
                     getGame().getPlayersSelf().selectPlayer(PlayersModelPlayer.this);
                 }
@@ -39,7 +40,9 @@ public class PlayersModelPlayer extends ModelPlayer<PlayersGame> {
             @Override
             public void mouseEntered(MouseEvent e) {
                 if (selectable){
-                    panel.setBorder(new LineBorder(Color.RED, 5));
+                    //panel.setBorder(new LineBorder(Color.RED, 5));
+                    ((RoundedPanel)panel).setShadowColor(new Color(255, 155, 84, 255));
+                    ((RoundedPanel)panel).setShadowAlpha(255);
                     panel.repaint();
                 }
             }
@@ -47,7 +50,10 @@ public class PlayersModelPlayer extends ModelPlayer<PlayersGame> {
             @Override
             public void mouseExited(MouseEvent e) {
                 if (selectable){
-                    panel.setBorder(new LineBorder(new Color(218, 255, 113), 5));
+                    //panel.setBorder(new LineBorder(new Color(218, 255, 113), 5));
+                    ((RoundedPanel)panel).setShadowColor(new Color(0, 0, 0, 130));
+                    ((RoundedPanel)panel).setShadowAlpha(100);
+                    ((RoundedPanel)panel).setStrokeSize(1);
                     panel.repaint();
                 }
             }

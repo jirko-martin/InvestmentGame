@@ -1,8 +1,8 @@
 package investmentGame.actor;
 
 import investmentGame.Configuration;
-import investmentGame.actor.Player;
 import investmentGame.actor.game.player.strategy.Strategy;
+import investmentGame.swing.ImagePreviewPanel;
 import madkit.kernel.Agent;
 import madkit.kernel.AgentAddress;
 import madkit.message.ActMessage;
@@ -12,7 +12,6 @@ import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
-import java.io.FileFilter;
 import java.util.*;
 import java.util.List;
 import java.util.logging.Level;

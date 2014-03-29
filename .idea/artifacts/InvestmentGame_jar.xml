@@ -1,0 +1,9 @@
+<component name="ArtifactManager">
+  <artifact type="jar" build-on-make="true" name="InvestmentGame:jar">
+    <output-path>$PROJECT_DIR$</output-path>
+    <root id="archive" name="InvestmentGame.jar">
+      <element id="module-output" name="InvestmentGame" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/MaDKit-5.0.1/madkit-5.0.1.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>

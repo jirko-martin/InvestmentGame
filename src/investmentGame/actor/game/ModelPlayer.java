@@ -1,7 +1,9 @@
 package investmentGame.actor.game;
 
+import investmentGame.swing.RoundedPanel;
+
 import javax.swing.*;
-import javax.swing.border.LineBorder;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.util.logging.Level;
 
@@ -32,7 +34,7 @@ public class ModelPlayer<GameType extends Game> implements PlayerInterface {
         JLabel playersName;
         JLabel creditBalance;
 
-        JPanel panel;
+        RoundedPanel panel;
 
         public GUI(){
             playersName = getPicturePath()!=null ? new JLabel(getPlayersName(),new ImageIcon(getScaledPicture(110)),JLabel.LEFT) : new JLabel(getPlayersName());
@@ -47,11 +49,20 @@ public class ModelPlayer<GameType extends Game> implements PlayerInterface {
 
         public JPanel getPanel(){
             if (panel==null){
-                panel = new JPanel(new BorderLayout());
+                panel = new RoundedPanel();//JPanel(new BorderLayout());
+                BorderLayout layout = new BorderLayout();
+                panel.setBorder(new EmptyBorder(18, 18, 18, 18) );
+                panel.setLayout(layout);
+                panel.setShadowColor(new Color(0,0,0,130));
+                panel.setShady(true);
+                ((RoundedPanel)panel).setShadowAlpha(100);
+                ((RoundedPanel)panel).setShadowOffset(10);
+                ((RoundedPanel)panel).setStrokeSize(1);
+                ((RoundedPanel)panel).setShadowGap(10);
 
                 panel.setBackground(Color.WHITE);
 
-                panel.setBorder(new LineBorder(new Color(218, 255, 113), 5));
+                //panel.setBorder(new LineBorder(new Color(218, 255, 113), 5));
 
                 panel.add(playersName,BorderLayout.NORTH);
 

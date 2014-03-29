@@ -3,6 +3,7 @@ package investmentGame.actor.game.player;
 import investmentGame.Configuration;
 import investmentGame.actor.game.*;
 import investmentGame.actor.Player;
+import investmentGame.swing.RadialLayout;
 import madkit.message.ActMessage;
 //import org.jfree.layout.RadialLayout;
 
@@ -161,7 +162,7 @@ public class PlayersGame extends Game {
                         else
                             g.setColor(new Color(190, 25, 0));
 
-                        g.fill3DRect(r1.x+r1.width-90,r1.y+r1.height,90,23,false);
+                        g.fillRoundRect(r1.x+r1.width-90,r1.y+r1.height,90,23,4,4);
 
                         g.setColor(Color.white);
 
@@ -172,7 +173,7 @@ public class PlayersGame extends Game {
                         else
                             g.setColor(new Color(190, 25, 0));
 
-                        g.fill3DRect(r2.x+r2.width-90,r2.y+r2.height,90,23,false);
+                        g.fillRoundRect(r2.x+r2.width-90,r2.y+r2.height,90,23,4,4);
 
                         g.setColor(Color.white);
 

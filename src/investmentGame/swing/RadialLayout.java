@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with GTStand.  If not, see <http://www.gnu.org/licenses/>.
  */
-package investmentGame.actor.game.player;
+package investmentGame.swing;
 
 import java.awt.Checkbox;
 import java.awt.Component;

@@ -5,10 +5,11 @@ import investmentGame.actor.game.Exchange;
 import investmentGame.actor.game.Game;
 import investmentGame.actor.game.PlayerInterface;
 import investmentGame.actor.game.Transfer;
+import investmentGame.swing.RoundedPanel;
 import madkit.message.ActMessage;
 
 import javax.swing.*;
-import javax.swing.border.LineBorder;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -37,7 +38,7 @@ public class HumanPlayerAvatar extends Player {
         JLabel playersName;
         JLabel creditBalance;
 
-        JPanel panel;
+        RoundedPanel panel;
 
         JPanel controlPanel,controlPanelA,controlPanelB,controlPanelC;
 
@@ -57,11 +58,20 @@ public class HumanPlayerAvatar extends Player {
         public JPanel getPanel(){
             if (panel==null){
 
-                panel = new JPanel(new BorderLayout());
+                panel = new RoundedPanel();//JPanel(new BorderLayout());
+                panel.setLayout(new BorderLayout());
+                panel.setBorder(new EmptyBorder(18, 18, 18, 18) );
+                panel.setShadowColor(new Color(0,0,0,130));
+                panel.setShady(true);
+                ((RoundedPanel)panel).setShadowAlpha(100);
+                ((RoundedPanel)panel).setShadowOffset(10);
+                ((RoundedPanel)panel).setStrokeSize(1);
+                ((RoundedPanel)panel).setShadowGap(10);
+
 
                 panel.setBackground(Color.WHITE);
 
-                panel.setBorder(new LineBorder(new Color(15, 255, 26), 5));
+                //panel.setBorder(new LineBorder(new Color(15, 255, 26), 5));
 
                 panel.add(playersName,BorderLayout.NORTH);
 
