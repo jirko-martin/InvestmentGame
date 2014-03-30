@@ -20,7 +20,7 @@ public class Configuration {
 
     public static final int transferAMultiplier = 3;
 
-    public static final int initialCreditBalance = 100;
+    public static final int initialCreditBalance = 10;
 
     public static class Colors {
 

@@ -251,4 +251,16 @@ public abstract class Game<StateType extends GameState> {
 
     }
 
+    public double getTotalCapitalInGame(){
+        double totalCapital = 0;
+
+        Iterator<PlayerInterface> playerInterfaceIterator = getPlayers().iterator();
+
+        while (playerInterfaceIterator.hasNext()){
+            totalCapital += playerInterfaceIterator.next().getCreditBalance();
+        }
+
+        return totalCapital;
+    }
+
 }

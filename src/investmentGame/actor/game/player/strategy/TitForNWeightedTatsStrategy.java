@@ -4,6 +4,7 @@ import investmentGame.Configuration;
 import investmentGame.actor.game.Exchange;
 import investmentGame.actor.game.Game;
 import investmentGame.actor.game.PlayerInterface;
+import investmentGame.actor.game.Transfer;
 import investmentGame.swing.RoundedPanel;
 import javafx.scene.web.HTMLEditor;
 
@@ -34,6 +35,190 @@ import java.util.logging.Level;
 public class TitForNWeightedTatsStrategy extends Strategy{
 
 
+    public class MotivationalStrategyComponent{
+
+        public double egoismCoefficient = 0.3;
+        public double egoismStandardDeviation = 0.1;
+
+        public double altruismCoefficient = 0.3;
+        public double altruismStandardDeviation = 0.1;
+
+        public double aggressionCoefficient = 0.1;
+        public double aggressionStandardDeviation = 0.1;
+
+        public double competitivenessCoefficient = 0.5;
+        public double competitivenessStandardDeviation = 0.1;
+
+        public double getEgoismStandardDeviation() {
+            return egoismStandardDeviation;
+        }
+
+        public void setEgoismStandardDeviation(double egoismStandardDeviation) {
+            this.egoismStandardDeviation = egoismStandardDeviation;
+        }
+
+        public double getAltruismStandardDeviation() {
+            return altruismStandardDeviation;
+        }
+
+        public void setAltruismStandardDeviation(double altruismStandardDeviation) {
+            this.altruismStandardDeviation = altruismStandardDeviation;
+        }
+
+        public double getAggressionStandardDeviation() {
+            return aggressionStandardDeviation;
+        }
+
+        public void setAggressionStandardDeviation(double aggressionStandardDeviation) {
+            this.aggressionStandardDeviation = aggressionStandardDeviation;
+        }
+
+        public double getCompetitivenessStandardDeviation() {
+            return competitivenessStandardDeviation;
+        }
+
+        public void setCompetitivenessStandardDeviation(double competitivenessStandardDeviation) {
+            this.competitivenessStandardDeviation = competitivenessStandardDeviation;
+        }
+
+        public double getEgoismCoefficient() {
+            return egoismCoefficient;
+        }
+
+        public void setEgoismCoefficient(double egoismCoefficient) {
+            this.egoismCoefficient = egoismCoefficient;
+        }
+
+        public double getAltruismCoefficient() {
+            return altruismCoefficient;
+        }
+
+        public void setAltruismCoefficient(double altruismCoefficient) {
+            this.altruismCoefficient = altruismCoefficient;
+        }
+
+        public double getAggressionCoefficient() {
+            return aggressionCoefficient;
+        }
+
+        public void setAggressionCoefficient(double aggressionCoefficient) {
+            this.aggressionCoefficient = aggressionCoefficient;
+        }
+
+        public double getCompetitivenessCoefficient() {
+            return competitivenessCoefficient;
+        }
+
+        public void setCompetitivenessCoefficient(double competitivenessCoefficient) {
+            this.competitivenessCoefficient = competitivenessCoefficient;
+        }
+        
+        public double calcEgoismComponent(){
+            try {
+                
+                double gainMeBMin = getPlayer().getGame().getCurrentRoundExchange().getTransferA().getRecipientsBalanceDelta();
+                double balanceMeBMin = getPlayer().getCreditBalance();
+                
+                return (gainMeBMin / balanceMeBMin);
+                
+            } catch (Exchange.TransferNotCommittedException e) {
+                e.printStackTrace();  
+                throw new RuntimeException(e);
+            } catch (Game.GameNotStartedYetException e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);  
+            }
+        }
+
+        public double calcAltruismComponent(){
+            try {
+
+                Exchange.TransferB maxBTransfer = new Exchange.TransferB(getPlayer(),getPlayer().getGame().getCurrentRoundExchange().getTransferA().getSender(),getPlayer().getGame().getCurrentRoundExchange().getTransferA().getRecipientsBalanceDelta());
+                
+                
+                double gainOpponentBMax = getPlayer().getGame().getCurrentRoundExchange().getTransferA().getSendersBalanceDelta() + maxBTransfer.getRecipientsBalanceDelta();
+                double balanceOpponentBMax = getPlayer().getGame().getCurrentRoundExchange().getTransferA().getSender().getCreditBalance() + maxBTransfer.getRecipientsBalanceDelta();
+
+                return (gainOpponentBMax / balanceOpponentBMax);
+
+            } catch (Exchange.TransferNotCommittedException e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            } catch (Game.GameNotStartedYetException e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            } catch (Transfer.InvalidTransferException e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            }
+        }
+
+        public double calcAggressionComponent(){
+            try {
+
+                double lossOpponentBMin = -1.0 * getPlayer().getGame().getCurrentRoundExchange().getTransferA().getSendersBalanceDelta();
+                double balanceOpponentBMin = getPlayer().getGame().getCurrentRoundExchange().getTransferA().getSender().getCreditBalance();
+
+                return (lossOpponentBMin / balanceOpponentBMin);
+
+            } catch (Exchange.TransferNotCommittedException e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            } catch (Game.GameNotStartedYetException e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            }
+        }
+        
+        public double calcCompetitivenessComponent(){
+            double totalCapitalInGame = getPlayer().getGame().getTotalCapitalInGame();
+
+
+            try {
+                PlayerInterface opponentA = getPlayer().getGame().getCurrentRoundExchange().getTransferA().getSender();
+                
+                Exchange.TransferB fairBTransfer = new Exchange.TransferB(getPlayer(),opponentA,getPlayer().getGame().getCurrentRoundExchange().getTransferA().getRecipientsBalanceDelta()*(2.0/3.0));
+            
+                double fractionOfTotalCapitalMeFairBTransfer = (getPlayer().getCreditBalance()+fairBTransfer.getSendersBalanceDelta()) / totalCapitalInGame;
+                
+                double fractionOfTotalCapitalOpponentFairBTransfer = (opponentA.getCreditBalance()+fairBTransfer.getRecipientsBalanceDelta()) / totalCapitalInGame;
+                
+                return (fractionOfTotalCapitalMeFairBTransfer - fractionOfTotalCapitalOpponentFairBTransfer);
+            
+            } catch (Transfer.InvalidTransferException e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            } catch (Exchange.TransferNotCommittedException e) {
+                e.printStackTrace();  
+                throw new RuntimeException(e);
+            } catch (Game.GameNotStartedYetException e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            }
+
+
+        }
+        
+        public double calculateMotivationalComplex(){
+            
+            double egoism = getRandom().nextGaussian() * getEgoismStandardDeviation() + getEgoismCoefficient();
+            double altruism = getRandom().nextGaussian() * getAltruismStandardDeviation() + getAltruismCoefficient();
+            double aggressiveness = getRandom().nextGaussian() * getAggressionStandardDeviation() + getAggressionCoefficient();
+            double competitiveness = getRandom().nextGaussian() * getCompetitivenessStandardDeviation() + getCompetitivenessCoefficient();
+            
+            double coefficientSum = egoism + altruism + aggressiveness + competitiveness;
+            
+            return (
+                    -1.0 * egoism          * calcEgoismComponent() 
+                   + 1.0 * altruism        * calcAltruismComponent() 
+                   - 1.0 * aggressiveness  * calcAggressionComponent() 
+                   + 1.0 * competitiveness * calcCompetitivenessComponent()
+                    ) / coefficientSum;
+        }
+        
+    }
+
+
     protected abstract class ExchangeExtractor{
 
         public abstract double extractValue0_1(Exchange exchange);
@@ -61,6 +246,8 @@ public class TitForNWeightedTatsStrategy extends Strategy{
 
 
     private boolean titForTatIncludeOtherPlayersExperience = true;
+
+    private MotivationalStrategyComponent motivationalStrategyComponent = new MotivationalStrategyComponent();
 
 
     private Random random = new Random();
@@ -217,13 +404,20 @@ public class TitForNWeightedTatsStrategy extends Strategy{
                     if (Double.isNaN(TFT1))
                         TFT1 = 0.5;
 
-                    double NUH = currentExchange.getTransferA().getRecipientsBalanceDelta() / getPlayer().getCreditBalance();
+                    //double NUH = currentExchange.getTransferA().getRecipientsBalanceDelta() / getPlayer().getCreditBalance();
+                    
+                    double MOTIVATION = motivationalStrategyComponent.calculateMotivationalComplex();
 
                     double gaussian = Math.round(
 
                             getRandom().nextGaussian() * getStandardDeviationB()
-                            + (100.0 * ( (getC1() * TFT1) + ((1 - getC1()) * (getBaseMeanB() / 100.0)) ))
-                            - (100.0 *   (getC2() * NUH))
+
+                            + 100.0
+                                *
+                                    (
+                                          (     getC2()  *   ( (getC1() * TFT1) + ((1 - getC1()) * (getBaseMeanB() / 100.0)) ))
+                                        + ((1 - getC2()) *   MOTIVATION)
+                                    )
 
                     );
 
@@ -242,10 +436,7 @@ public class TitForNWeightedTatsStrategy extends Strategy{
         } catch (Game.GameNotStartedYetException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
-        } catch (Exchange.TransferNotCommittedException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
+        } 
     }
 
     private double getEvaluationOfOpponent(PlayerInterface opponent, ExchangeExtractor extractor){
@@ -398,40 +589,66 @@ public class TitForNWeightedTatsStrategy extends Strategy{
 
         JPanel panel = new JPanel(new BorderLayout());
 
-        JPanel contentPane = new JPanel(new BorderLayout());
+        //JPanel contentPane = new JPanel(new BorderLayout());
+        JSplitPane contentPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
 
-        panel.add(new JScrollPane(contentPane),BorderLayout.CENTER);
+//        JScrollPane contentScrollPane = new JScrollPane(contentPane);
+//
+//        contentScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+
+        panel.add(contentPane,BorderLayout.CENTER);
 
         JPanel formulaPane = new JPanel();
         formulaPane.setBackground(Color.WHITE);
 
-        formulaPane.setLayout(new GridLayout(1,1));
-        formulaPane.setBorder(new LineBorder(Color.darkGray,2));
+        formulaPane.setLayout(new BorderLayout());
+        //formulaPane.setBorder(new LineBorder(Color.darkGray,2));
 
         String formulaD_A = "<div><font size=+2>D<sub>A</sub>(<font size=-2>opponent</font>) = </font>gauss<sub>[-1;1],1</sub> * <font color=\"#0000FF\">stdDev<sub>A</sub></font> + <font color=\"#0000FF\">c<sub>4</sub></font> * (<font color=\"#0000FF\">c<sub>3</sub></font> * <font color=\"#00FF00\">TitTat<sub>A</sub>(opponent)</font> + (1-<font color=\"#0000FF\">c<sub>3</sub></font>) * <font color=\"#0000FF\">baseMean<sub>A</sub></font>)</div>";
 
-        String formulaD_B = "<div><font size=+2>D<sub>B</sub>(<font size=-2>opponent</font>) = </font>gauss<sub>[-1;1],1</sub> * <font color=\"#0000FF\">stdDev<sub>B</sub></font> + <font color=\"#0000FF\">c<sub>1</sub></font> * <font color=\"#00FF00\">TitTat<sub>B</sub>(opponent)</font> + (1-<font color=\"#0000FF\">c<sub>1</sub></font>) * <font color=\"#0000FF\">baseMean<sub>B</sub></font> - <font color=\"#0000FF\">c<sub>2</sub></font> * <font color=\"#00FF00\">BenefitBetray</font></div>";
+        String formulaD_B = "<div><font size=+2>D<sub>B</sub>(<font size=-2>opponent</font>) = </font>gauss<sub>[-1;1],1</sub> * <font color=\"#0000FF\">stdDev<sub>B</sub></font> + <font color=\"#0000FF\">c<sub>2</sub></font> * (<font color=\"#0000FF\">c<sub>1</sub></font> * <font color=\"#00FF00\">TitTat<sub>B</sub>(opponent)</font> + (1-<font color=\"#0000FF\">c<sub>1</sub></font>) * <font color=\"#0000FF\">baseMean<sub>B</sub></font>) + (1 - <font color=\"#0000FF\">c<sub>2</sub></font>) * <font color=\"#00FF00\">MotivComp</font></div>";
 
 
         String formulaTitTat_A = "<div><font size=+1 color=\"#00FF00\">TitTat<sub>A</sub>(<font size=-1>opponent</font>) = </font><font size=+2>&#8721;</font><sub>i=0<sub>,past_rounds</sub></sub><font size=+1>[</font><font color=\"#0000FF\">w</font><sup>i</sup> * f{win:1,winwin:0.5,loss:0}(round)<font size=+1>]</font></div>";
 
         String formulaTitTat_B = "<div><font size=+1 color=\"#00FF00\">TitTat<sub>B</sub>(<font size=-1>opponent</font>) = </font><font size=+2>&#8721;</font><sub>i=0<sub>,past_rounds</sub></sub><font size=+1>[</font><font color=\"#0000FF\">w</font><sup>i</sup> * (amount<sub>B</sub> / amount_received<sub>A</sub>)<font size=+1>]</font></div>";
 
-        String formulaBenefitBetray = "<div><font size=+1 color=\"#00FF00\">BenefitBetray</font> = amount_received(A_current) / current_own_credit_account_balance</div>";
+        String formulaMotivComp = "<div><font size=+1 color=\"#00FF00\">MotivComp = </font>(-<font color=\"#00FF00\">ego</font>*<font color=\"#00FF00\">EgoComp</font>+<font color=\"#00FF00\">alt</font>*<font color=\"#00FF00\">AltComp</font>-<font color=\"#00FF00\">agg</font>*<font color=\"#00FF00\">AggComp</font>+<font color=\"#00FF00\">cmp</font>*<font color=\"#00FF00\">CmpComp</font>)/(<font color=\"#00FF00\">ego</font>+<font color=\"#00FF00\">alt</font>+<font color=\"#00FF00\">agg</font>+<font color=\"#00FF00\">cmp</font>)</div>";
+
+        String formulaEgo = "<div><font size=+1 color=\"#00FF00\">ego = </font>gauss<sub>[-1;1],1</sub> * <font color=\"#0000FF\">stdDev<sub>EGOISM</sub></font> + <font color=\"#0000FF\">Degree<sub>EGOISM</sub></font></div>";
+
+        String formulaEgoComp = "<div><font size=+1 color=\"#00FF00\">EgoComp = </font>Profit<sub>minAmount(B)=0.0</sub>(thisPlayer) / accountBalance<sub>now and if amount(B)=0.0</sub>(thisPlayer)</div>";
+
+        String formulaAltComp = "<div><font size=+1 color=\"#00FF00\">AltComp = </font>Profit<sub>maxAmount(B)=amount_received(A)</sub>(opponent) / accountBalance<sub>now and if amount(B)=amount_received(A)</sub>(opponent)</div>";
+
+        String formulaAggComp = "<div><font size=+1 color=\"#00FF00\">AggComp = </font>Loss<sub>minAmount(B)=0.0</sub>(opponent) / accountBalance<sub>now and if amount(B)=0.0</sub>(opponent)</div>";
+
+        String formulaCmpComp = "<div><font size=+1 color=\"#00FF00\">CmpComp = </font>(accountBalance<sub>fairestAmount(B)=2/3*amount_received(A)</sub>(thisPlayer) / totalCapitalInGame<sub>now</sub>) - (accountBalance<sub>fairestAmount(B)=2/3*amount_received(A)</sub>(opponent) / totalCapitalInGame<sub>now</sub>)</div>";
+
 
         String formulaAbstractHtml =
             "<html><head></head><body>"
 
                     +formulaD_A
-                    +"<div><font size=-1>Entscheidungsfunktion D<sub>A</sub> berechnet den Anteil des Guthabens von Spieler A, den A an B überweist. (Gauss-basiert)</font></div><br><br>"
+                    +"<br><div><font size=-1>Entscheidungsfunktion D<sub>A</sub> berechnet den Anteil des Guthabens von Spieler A, den A an B überweist. (Gauss-basiert)</font></div><br><br><br>"
                     +formulaD_B
-                    +"<div><font size=-1>Entscheidungsfunktion D<sub>B</sub> berechnet den Anteil des von A erhaltenen Betrags, den B an A zurücküberweist. (Gauss-basiert)</font></div><br><br>"
+                    +"<br><div><font size=-1>Entscheidungsfunktion D<sub>B</sub> berechnet den Anteil des von A erhaltenen Betrags, den B an A zurücküberweist. (Gauss-basiert)</font></div><br><br><br>"
                     +formulaTitTat_A
-                    +"<div><font size=-1>Gedächtnisfunktion TitTat<sub>A</sub>(opponent) berechnet den Mittelwert des in früheren Runden<br> von B anteilig zurücküberwiesenen Betrags (dieser wird in eine von drei Klassen eingeordnet:<br> win=\"richtig\" gewonnen, winwin=\"nur\" gewonnen, loss=verloren).<br>Dabei werden Messwerte um so geringer gewichtet, je länger der Zug vergangen ist <br>(steuerbar über <i>w</i>)</font></div><br><br>"
+                    +"<br><div><font size=-1>Gedächtnisfunktion TitTat<sub>A</sub>(opponent) berechnet den Mittelwert des in früheren Runden<br> von B anteilig zurücküberwiesenen Betrags (dieser wird in eine von drei Klassen eingeordnet:<br> win=\"richtig\" gewonnen, winwin=\"nur\" gewonnen, loss=verloren).<br>Dabei werden Messwerte um so geringer gewichtet, je länger der Zug vergangen ist <br>(steuerbar über <i>w</i>)</font></div><br><br><br>"
                     +formulaTitTat_B
-                    +"<div><font size=-1>Gedächtnisfunktion TitTat<sub>B</sub>(opponent) berechnet den Mittelwert des in früheren Runden<br> von A anteilig zurücküberwiesenen Betrags.<br>Dabei werden Messwerte um so geringer gewichtet, je länger der Zug vergangen ist <br>(steuerbar über <i>w</i>)</font></div><br><br>"
-                    +formulaBenefitBetray
-                    +"<div><font size=-1>Eigennutzenfunktion BenefitBetray berechnet das Verhältnis von gerade in A erhaltenem Betrag und eigenem aktuellen Guthabenstand. <br>Je größer der Quotient ist, desto mehr lohnt sich unfaires Verhalten in B für den Spieler.</font></div><br><br>"
+                    +"<br><div><font size=-1>Gedächtnisfunktion TitTat<sub>B</sub>(opponent) berechnet den Mittelwert des in früheren Runden<br> von A anteilig zurücküberwiesenen Betrags.<br>Dabei werden Messwerte um so geringer gewichtet, je länger der Zug vergangen ist <br>(steuerbar über <i>w</i>)</font></div><br><br><br>"
+                    +formulaMotivComp
+                    +"<br><div><font size=-1>Motivationsfunktion mit Sub-Komponenten: Egoismus, Altruismus, Aggressivität, Konkurrenzdenken</font></div><br><br><br>"
+                    +formulaEgo
+                    +"<br><div><font size=-1>Momentane Ausprägung der egoistischen Motivationskomponente<br><b>Analog für alt (Altruismus), agg (Aggressivität), cmp (Konkurrenzdenken)</b></font></div><br><br><br>"
+                    +formulaEgoComp
+                    +"<br><div><font size=-1>Ein egoistischer Spieler möchte seinen eigenen (Zu-)Gewinn (gemessen an seinem aktuellen Guthaben) maximieren</font></div><br><br><br>"
+                    +formulaAltComp
+                    +"<br><div><font size=-1>Ein altruistischer Spieler möchte den (Zu-)Gewinn seines \"Gegners\" (gemessen an dessem aktuellen Guthaben) maximieren</font></div><br><br><br>"
+                    +formulaAggComp
+                    +"<br><div><font size=-1>Ein aggressiver Spieler möchte den Verlust/Schaden seines Gegners (gemessen an dessem aktuellen Guthaben) maximieren</font></div><br><br><br>"
+                    +formulaCmpComp
+                    +"<br><div><font size=-1>Ein Spieler mit starkem Konkurrenzdenken bewertet die Option eines fairen <br> Zugs B danach, ob er damit im Gesamtvergleich besser oder schlechter da stehen würde als der Gegner.<br>Solche Spieler sind quasi nur gegenüber schwächeren Spielern fair, von denen ihnen keine Gefahr droht.</font></div><br><br>"
                 +"</body></html>";
 
 
@@ -460,10 +677,7 @@ public class TitForNWeightedTatsStrategy extends Strategy{
         JTextPane formulaWithValuesAPane = new JTextPane();
         formulaWithValuesAPane.setContentType("text/html");
 
-
-        //formulaPane.add(formulaWithValuesAPane);
-
-        JPanel sliderPane = new JPanel(new GridLayout(9,1));
+        JPanel sliderPane = new JPanel(new GridLayout(17,1));
 
         JPanel meanAPanel = new JPanel(new BorderLayout());
         meanAPanel.setBorder(new TitledBorder("baseMean_A"));
@@ -483,6 +697,23 @@ public class TitForNWeightedTatsStrategy extends Strategy{
         c4Panel.setBorder(new TitledBorder("coefficient c_4"));
         JPanel wPanel = new JPanel(new BorderLayout());
         wPanel.setBorder(new TitledBorder("weighting base w"));
+
+        JPanel egoPanel = new JPanel(new BorderLayout());
+        egoPanel.setBorder(new TitledBorder("degree of egoism"));
+        JPanel egoStdDevPanel = new JPanel(new BorderLayout());
+        egoStdDevPanel.setBorder(new TitledBorder("stdDev of degree of egoism"));
+        JPanel altPanel = new JPanel(new BorderLayout());
+        altPanel.setBorder(new TitledBorder("degree of altruism"));
+        JPanel altStdDevPanel = new JPanel(new BorderLayout());
+        altStdDevPanel.setBorder(new TitledBorder("stdDev of degree of altruism"));
+        JPanel aggPanel = new JPanel(new BorderLayout());
+        aggPanel.setBorder(new TitledBorder("degree of aggressiveness"));
+        JPanel aggStdDevPanel = new JPanel(new BorderLayout());
+        aggStdDevPanel.setBorder(new TitledBorder("stdDev of degree of aggressiveness"));
+        JPanel compPanel = new JPanel(new BorderLayout());
+        compPanel.setBorder(new TitledBorder("degree of competitiveness"));
+        JPanel compStdDevPanel = new JPanel(new BorderLayout());
+        compStdDevPanel.setBorder(new TitledBorder("stdDev of degree of competitiveness"));
 
         final JSlider meanASlider = new JSlider(JSlider.HORIZONTAL,0,100,getBaseMeanA());
         meanASlider.setMajorTickSpacing(10);
@@ -626,6 +857,134 @@ public class TitForNWeightedTatsStrategy extends Strategy{
             }
         });
 
+        final JSlider egoSlider = new JSlider(JSlider.HORIZONTAL,0,100,(int)Math.round(100.0*motivationalStrategyComponent.getEgoismCoefficient()));
+        egoSlider.setMajorTickSpacing(10);
+        egoSlider.setMinorTickSpacing(5);
+        egoSlider.createStandardLabels(10);
+        egoSlider.setLabelTable(egoSlider.createStandardLabels(10));
+        egoSlider.setPaintLabels(true);
+        egoSlider.setPaintTicks(true);
+        egoSlider.setSnapToTicks(true);
+
+        egoSlider.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                motivationalStrategyComponent.setEgoismCoefficient(egoSlider.getValue()/100.0);
+            }
+        });
+
+        final JSlider egoStdDevSlider = new JSlider(JSlider.HORIZONTAL,0,100,(int)Math.round(100.0*motivationalStrategyComponent.getEgoismStandardDeviation()));
+        egoStdDevSlider.setMajorTickSpacing(10);
+        egoStdDevSlider.setMinorTickSpacing(5);
+        egoStdDevSlider.createStandardLabels(10);
+        egoStdDevSlider.setLabelTable(egoStdDevSlider.createStandardLabels(10));
+        egoStdDevSlider.setPaintLabels(true);
+        egoStdDevSlider.setPaintTicks(true);
+        egoStdDevSlider.setSnapToTicks(true);
+
+        egoStdDevSlider.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                motivationalStrategyComponent.setEgoismStandardDeviation(egoStdDevSlider.getValue()/100.0);
+            }
+        });
+
+        final JSlider altSlider = new JSlider(JSlider.HORIZONTAL,0,100,(int)Math.round(100.0*motivationalStrategyComponent.getAltruismCoefficient()));
+        altSlider.setMajorTickSpacing(10);
+        altSlider.setMinorTickSpacing(5);
+        altSlider.createStandardLabels(10);
+        altSlider.setLabelTable(altSlider.createStandardLabels(10));
+        altSlider.setPaintLabels(true);
+        altSlider.setPaintTicks(true);
+        altSlider.setSnapToTicks(true);
+
+        altSlider.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                motivationalStrategyComponent.setAltruismCoefficient(altSlider.getValue()/100.0);
+            }
+        });
+
+        final JSlider altStdDevSlider = new JSlider(JSlider.HORIZONTAL,0,100,(int)Math.round(100.0*motivationalStrategyComponent.getAltruismStandardDeviation()));
+        altStdDevSlider.setMajorTickSpacing(10);
+        altStdDevSlider.setMinorTickSpacing(5);
+        altStdDevSlider.createStandardLabels(10);
+        altStdDevSlider.setLabelTable(altStdDevSlider.createStandardLabels(10));
+        altStdDevSlider.setPaintLabels(true);
+        altStdDevSlider.setPaintTicks(true);
+        altStdDevSlider.setSnapToTicks(true);
+
+        altStdDevSlider.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                motivationalStrategyComponent.setAltruismStandardDeviation(altStdDevSlider.getValue()/100.0);
+            }
+        });
+        
+        final JSlider aggSlider = new JSlider(JSlider.HORIZONTAL,0,100,(int)Math.round(100.0*motivationalStrategyComponent.getAggressionCoefficient()));
+        aggSlider.setMajorTickSpacing(10);
+        aggSlider.setMinorTickSpacing(5);
+        aggSlider.createStandardLabels(10);
+        aggSlider.setLabelTable(aggSlider.createStandardLabels(10));
+        aggSlider.setPaintLabels(true);
+        aggSlider.setPaintTicks(true);
+        aggSlider.setSnapToTicks(true);
+
+        aggSlider.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                motivationalStrategyComponent.setAggressionCoefficient(aggSlider.getValue()/100.0);
+            }
+        });
+
+        final JSlider aggStdDevSlider = new JSlider(JSlider.HORIZONTAL,0,100,(int)Math.round(100.0*motivationalStrategyComponent.getAggressionStandardDeviation()));
+        aggStdDevSlider.setMajorTickSpacing(10);
+        aggStdDevSlider.setMinorTickSpacing(5);
+        aggStdDevSlider.createStandardLabels(10);
+        aggStdDevSlider.setLabelTable(aggStdDevSlider.createStandardLabels(10));
+        aggStdDevSlider.setPaintLabels(true);
+        aggStdDevSlider.setPaintTicks(true);
+        aggStdDevSlider.setSnapToTicks(true);
+
+        aggStdDevSlider.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                motivationalStrategyComponent.setAggressionStandardDeviation(aggStdDevSlider.getValue()/100.0);
+            }
+        });
+
+        final JSlider compSlider = new JSlider(JSlider.HORIZONTAL,0,100,(int)Math.round(100.0*motivationalStrategyComponent.getCompetitivenessCoefficient()));
+        compSlider.setMajorTickSpacing(10);
+        compSlider.setMinorTickSpacing(5);
+        compSlider.createStandardLabels(10);
+        compSlider.setLabelTable(compSlider.createStandardLabels(10));
+        compSlider.setPaintLabels(true);
+        compSlider.setPaintTicks(true);
+        compSlider.setSnapToTicks(true);
+
+        compSlider.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                motivationalStrategyComponent.setCompetitivenessCoefficient(compSlider.getValue() / 100.0);
+            }
+        });
+
+        final JSlider compStdDevSlider = new JSlider(JSlider.HORIZONTAL,0,100,(int)Math.round(100.0*motivationalStrategyComponent.getCompetitivenessStandardDeviation()));
+        compStdDevSlider.setMajorTickSpacing(10);
+        compStdDevSlider.setMinorTickSpacing(5);
+        compStdDevSlider.createStandardLabels(10);
+        compStdDevSlider.setLabelTable(compStdDevSlider.createStandardLabels(10));
+        compStdDevSlider.setPaintLabels(true);
+        compStdDevSlider.setPaintTicks(true);
+        compStdDevSlider.setSnapToTicks(true);
+
+        compStdDevSlider.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                motivationalStrategyComponent.setCompetitivenessStandardDeviation(compStdDevSlider.getValue() / 100.0);
+            }
+        });
+        
         meanAPanel.add(meanASlider,BorderLayout.CENTER);
         meanBPanel.add(meanBSlider,BorderLayout.CENTER);
         stdDevAPanel.add(stdDevASlider,BorderLayout.CENTER);
@@ -635,6 +994,14 @@ public class TitForNWeightedTatsStrategy extends Strategy{
         c3Panel.add(c3Slider,BorderLayout.CENTER);
         c4Panel.add(c4Slider,BorderLayout.CENTER);
         wPanel.add(wSlider,BorderLayout.CENTER);
+        egoPanel.add(egoSlider,BorderLayout.CENTER);
+        egoStdDevPanel.add(egoStdDevSlider,BorderLayout.CENTER);
+        altPanel.add(altSlider,BorderLayout.CENTER);
+        altStdDevPanel.add(altStdDevSlider,BorderLayout.CENTER);
+        aggPanel.add(aggSlider,BorderLayout.CENTER);
+        aggStdDevPanel.add(aggStdDevSlider,BorderLayout.CENTER);
+        compPanel.add(compSlider,BorderLayout.CENTER);
+        compStdDevPanel.add(compStdDevSlider,BorderLayout.CENTER);
 
         sliderPane.add(meanAPanel);
         sliderPane.add(stdDevAPanel);
@@ -645,10 +1012,29 @@ public class TitForNWeightedTatsStrategy extends Strategy{
         sliderPane.add(c3Panel);
         sliderPane.add(c4Panel);
         sliderPane.add(wPanel);
+        sliderPane.add(egoPanel);
+        sliderPane.add(egoStdDevPanel);
+        sliderPane.add(altPanel);
+        sliderPane.add(altStdDevPanel);
+        sliderPane.add(aggPanel);
+        sliderPane.add(aggStdDevPanel);
+        sliderPane.add(compPanel);
+        sliderPane.add(compStdDevPanel);
 
-        contentPane.add(formulaPane,BorderLayout.NORTH);
+        formulaAbstractAPane.setPreferredSize(new Dimension(700, 300));
+        formulaAbstractAPane.setMinimumSize(new Dimension(700, 300));
 
-        contentPane.add(sliderPane,BorderLayout.CENTER);
+        JScrollPane formulaScrollPane = new JScrollPane(formulaAbstractAPane);
+        formulaScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        formulaScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+
+        contentPane.setTopComponent(formulaScrollPane);
+
+        JScrollPane sliderScrollPane = new JScrollPane(sliderPane);
+
+        contentPane.setBottomComponent(sliderScrollPane);
+
+        contentPane.setDividerLocation(300);
 
         return panel;
 
