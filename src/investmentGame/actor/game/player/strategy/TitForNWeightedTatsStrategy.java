@@ -429,7 +429,7 @@ public class TitForNWeightedTatsStrategy extends Strategy{
                     +formulaTitTat_A
                     +"<div><font size=-1>Gedächtnisfunktion TitTat<sub>A</sub>(opponent) berechnet den Mittelwert des in früheren Runden<br> von B anteilig zurücküberwiesenen Betrags (dieser wird in eine von drei Klassen eingeordnet:<br> win=\"richtig\" gewonnen, winwin=\"nur\" gewonnen, loss=verloren).<br>Dabei werden Messwerte um so geringer gewichtet, je länger der Zug vergangen ist <br>(steuerbar über <i>w</i>)</font></div><br><br>"
                     +formulaTitTat_B
-                    +"<div><font size=-1>Gedächtnisfunktion TitTat<sub>B</sub>(opponent) berechnet den Mittelwert des in früheren Runden<br> von B anteilig zurücküberwiesenen Betrags.<br>Dabei werden Messwerte um so geringer gewichtet, je länger der Zug vergangen ist <br>(steuerbar über <i>w</i>)</font></div><br><br>"
+                    +"<div><font size=-1>Gedächtnisfunktion TitTat<sub>B</sub>(opponent) berechnet den Mittelwert des in früheren Runden<br> von A anteilig zurücküberwiesenen Betrags.<br>Dabei werden Messwerte um so geringer gewichtet, je länger der Zug vergangen ist <br>(steuerbar über <i>w</i>)</font></div><br><br>"
                     +formulaBenefitBetray
                     +"<div><font size=-1>Eigennutzenfunktion BenefitBetray berechnet das Verhältnis von gerade in A erhaltenem Betrag und eigenem aktuellen Guthabenstand. <br>Je größer der Quotient ist, desto mehr lohnt sich unfaires Verhalten in B für den Spieler.</font></div><br><br>"
                 +"</body></html>";
