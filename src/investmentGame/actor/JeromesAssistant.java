@@ -364,7 +364,7 @@ public class JeromesAssistant extends Agent{
 
                     dialog.setTitle("Neuer Computer-Spieler");
 
-                    dialog.setBounds(frame.getBounds().x,frame.getBounds().y,750,450);
+                    dialog.setBounds(frame.getBounds().x,frame.getBounds().y,1115,820);
 
                     JPanel dialogPane = new JPanel(new BorderLayout());
 

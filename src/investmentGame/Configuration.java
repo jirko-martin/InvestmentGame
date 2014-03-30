@@ -3,6 +3,7 @@ package investmentGame;
 import investmentGame.actor.game.player.strategy.GaussianStrategy;
 import investmentGame.actor.game.player.strategy.RandomStrategy;
 import investmentGame.actor.game.player.strategy.Strategy;
+import investmentGame.actor.game.player.strategy.TitForNWeightedTatsStrategy;
 
 import java.awt.*;
 
@@ -42,7 +43,8 @@ public class Configuration {
     public static final Class[] strategies = {
 
             GaussianStrategy.class,
-            RandomStrategy.class
+            RandomStrategy.class,
+            TitForNWeightedTatsStrategy.class
 
     };
 

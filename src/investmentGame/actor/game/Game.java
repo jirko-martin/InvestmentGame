@@ -79,6 +79,10 @@ public abstract class Game<StateType extends GameState> {
         initialize();
     }
 
+    public Vector<Exchange> getExchanges(){
+        return exchanges;
+    }
+
     public Exchange getCurrentRoundExchange() throws GameNotStartedYetException {
         if (isStarted()){
             return exchanges.lastElement();
