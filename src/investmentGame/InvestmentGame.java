@@ -1,6 +1,6 @@
 package investmentGame;
 
-import investmentGame.actor.JeromesAssistant;
+import investmentGame.actor.JPoetAssistant;
 import madkit.kernel.Madkit;
 
 /**
@@ -18,7 +18,9 @@ public class InvestmentGame {
                 Madkit.Option.launchAgents.toString(),
 //                Coordinator.class.getName() + ",true,1;"
 //                + ComputerPlayer.class.getName() + ",true,1;"
-               JeromesAssistant.class.getName() + ",true,1;"
+//                 JeromesAssistant.class.getName() + ",true,1;"
+                 JPoetAssistant.class.getName() + ",true,1;"
+
         );
 
     }
