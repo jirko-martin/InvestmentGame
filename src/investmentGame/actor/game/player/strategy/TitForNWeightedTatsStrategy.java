@@ -521,6 +521,8 @@ public class TitForNWeightedTatsStrategy extends Strategy{
         
         if (estimatedFractionOfReturn>1)
             estimatedFractionOfReturn = 1;
+        if (estimatedFractionOfReturn<0)
+            estimatedFractionOfReturn = 0;
 
         double MOTIVATION = motivationalStrategyComponent.calculateMotivationalComplexA(opponent, estimatedFractionOfReturn);
 
