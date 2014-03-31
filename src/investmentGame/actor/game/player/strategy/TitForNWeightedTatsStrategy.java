@@ -44,6 +44,9 @@ public class TitForNWeightedTatsStrategy extends Strategy{
 
         public double competitivenessCoefficient = 0.75;
         public double competitivenessStandardDeviation = 0.1;
+        
+        public double optimismCoefficient = 0.35;
+        public double optimismStandardDeviation = 0.15;
 
         public double getEgoismStandardDeviation() {
             return egoismStandardDeviation;
@@ -109,12 +112,28 @@ public class TitForNWeightedTatsStrategy extends Strategy{
             this.competitivenessCoefficient = competitivenessCoefficient;
         }
 
+        public double getOptimismCoefficient() {
+            return optimismCoefficient;
+        }
+
+        public void setOptimismCoefficient(double optimismCoefficient) {
+            this.optimismCoefficient = optimismCoefficient;
+        }
+
+        public double getOptimismStandardDeviation() {
+            return optimismStandardDeviation;
+        }
+
+        public void setOptimismStandardDeviation(double optimismStandardDeviation) {
+            this.optimismStandardDeviation = optimismStandardDeviation;
+        }
+
         public double calcEgoismComponentA(double expectedPercentageTransferBOpponent, PlayerInterface opponent){
 
             double currentBalance = getPlayer().getCreditBalance();
 
             try {
-                Transfer transferA = new Exchange.TransferA(getPlayer(),opponent,getBaseMeanA()*currentBalance, Configuration.transferAMultiplier);
+                Transfer transferA = new Exchange.TransferA(getPlayer(),opponent,(getBaseMeanA()/100.0)*currentBalance, Configuration.transferAMultiplier);
                 Transfer transferB = new Exchange.TransferB(opponent,getPlayer(),expectedPercentageTransferBOpponent*transferA.getRecipientsBalanceDelta());
 
                 double expectedBalanceDelta = transferA.getSendersBalanceDelta() + transferB.getRecipientsBalanceDelta();
@@ -152,7 +171,7 @@ public class TitForNWeightedTatsStrategy extends Strategy{
             double currentBalanceOpponent = opponent.getCreditBalance();
 
             try {
-                Transfer transferA = new Exchange.TransferA(getPlayer(),opponent,getBaseMeanA()*getPlayer().getCreditBalance(), Configuration.transferAMultiplier);
+                Transfer transferA = new Exchange.TransferA(getPlayer(),opponent,(getBaseMeanA()/100.0)*getPlayer().getCreditBalance(), Configuration.transferAMultiplier);
                 Transfer transferB = new Exchange.TransferB(opponent,getPlayer(),expectedPercentageTransferBOpponent*transferA.getRecipientsBalanceDelta());
 
                 double expectedBalanceDeltaOpponent = transferA.getRecipientsBalanceDelta() + transferB.getSendersBalanceDelta();
@@ -196,7 +215,7 @@ public class TitForNWeightedTatsStrategy extends Strategy{
             double currentBalanceOpponent = opponent.getCreditBalance();
 
             try {
-                Transfer transferA = new Exchange.TransferA(getPlayer(),opponent,getBaseMeanA()*getPlayer().getCreditBalance(), Configuration.transferAMultiplier);
+                Transfer transferA = new Exchange.TransferA(getPlayer(),opponent,(getBaseMeanA()/100.0)*getPlayer().getCreditBalance(), Configuration.transferAMultiplier);
                 Transfer transferB = new Exchange.TransferB(opponent,getPlayer(),expectedPercentageTransferBOpponent*transferA.getRecipientsBalanceDelta());
 
                 double expectedBalanceDeltaOpponent = transferA.getRecipientsBalanceDelta() + transferB.getSendersBalanceDelta();
@@ -240,7 +259,7 @@ public class TitForNWeightedTatsStrategy extends Strategy{
 
                 double distanceStatus = fractionMeNow - fractionOpponentNow;
 
-                Transfer transferA = new Exchange.TransferA(getPlayer(),opponent,getBaseMeanA()*getPlayer().getCreditBalance(), Configuration.transferAMultiplier);
+                Transfer transferA = new Exchange.TransferA(getPlayer(),opponent,(getBaseMeanA()/100.0)*getPlayer().getCreditBalance(), Configuration.transferAMultiplier);
                 Transfer transferB = new Exchange.TransferB(opponent,getPlayer(),expectedPercentageTransferBOpponent*transferA.getRecipientsBalanceDelta());
 
                 double expectedBalanceDelta = transferA.getSendersBalanceDelta() + transferB.getRecipientsBalanceDelta();
@@ -310,8 +329,8 @@ public class TitForNWeightedTatsStrategy extends Strategy{
             return (
                      egoism          * calcEgoismComponentA(expectedReTransferFractionBOpponent,opponent)
                    + altruism        * calcAltruismComponentA(expectedReTransferFractionBOpponent,opponent)
-                   + aggressiveness  * calcAggressionComponentA(expectedReTransferFractionBOpponent,opponent)
-                   + competitiveness * calcCompetitivenessComponentA(expectedReTransferFractionBOpponent,opponent)
+                   + aggressiveness  * calcAggressionComponentA(expectedReTransferFractionBOpponent, opponent)
+                   + competitiveness * calcCompetitivenessComponentA(expectedReTransferFractionBOpponent, opponent)
             ) / coefficientSum;
         }
 
@@ -495,8 +514,15 @@ public class TitForNWeightedTatsStrategy extends Strategy{
 
         if (Double.isNaN(TFT1))
             TFT1 = 0.5;
+        
+        double optimism = getRandom().nextGaussian() * motivationalStrategyComponent.getOptimismStandardDeviation() + motivationalStrategyComponent.getOptimismCoefficient();
+        
+        double estimatedFractionOfReturn = TFT1 * 2*optimism;
+        
+        if (estimatedFractionOfReturn>1)
+            estimatedFractionOfReturn = 1;
 
-        double MOTIVATION = motivationalStrategyComponent.calculateMotivationalComplexA(opponent,TFT1);
+        double MOTIVATION = motivationalStrategyComponent.calculateMotivationalComplexA(opponent, estimatedFractionOfReturn);
 
         double gaussian = Math.round(
 
@@ -815,7 +841,7 @@ public class TitForNWeightedTatsStrategy extends Strategy{
         JTextPane formulaWithValuesAPane = new JTextPane();
         formulaWithValuesAPane.setContentType("text/html");
 
-        JPanel sliderPane = new JPanel(new GridLayout(17,1));
+        JPanel sliderPane = new JPanel(new GridLayout(18,1));
 
         JPanel meanAPanel = new JPanel(new BorderLayout());
         meanAPanel.setBorder(new TitledBorder("baseMean_A"));
@@ -835,6 +861,8 @@ public class TitForNWeightedTatsStrategy extends Strategy{
         c4Panel.setBorder(new TitledBorder("coefficient c_4"));
         JPanel wPanel = new JPanel(new BorderLayout());
         wPanel.setBorder(new TitledBorder("weighting base w"));
+        JPanel optimismPanel = new JPanel(new BorderLayout());
+        optimismPanel.setBorder(new TitledBorder("degree of optimism (0:pessimistic,1:optimistic)"));
 
         JPanel egoPanel = new JPanel(new BorderLayout());
         egoPanel.setBorder(new TitledBorder("degree of egoism"));
@@ -995,6 +1023,22 @@ public class TitForNWeightedTatsStrategy extends Strategy{
             }
         });
 
+        final JSlider optimismSlider = new JSlider(JSlider.HORIZONTAL,0,100,(int)Math.round(100.0*motivationalStrategyComponent.getOptimismCoefficient()));
+        optimismSlider.setMajorTickSpacing(10);
+        optimismSlider.setMinorTickSpacing(5);
+        optimismSlider.createStandardLabels(10);
+        optimismSlider.setLabelTable(optimismSlider.createStandardLabels(10));
+        optimismSlider.setPaintLabels(true);
+        optimismSlider.setPaintTicks(true);
+        optimismSlider.setSnapToTicks(true);
+
+        optimismSlider.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                motivationalStrategyComponent.setOptimismCoefficient(optimismSlider.getValue()/100.0);
+            }
+        });
+
         final JSlider egoSlider = new JSlider(JSlider.HORIZONTAL,0,100,(int)Math.round(100.0*motivationalStrategyComponent.getEgoismCoefficient()));
         egoSlider.setMajorTickSpacing(10);
         egoSlider.setMinorTickSpacing(5);
@@ -1132,6 +1176,7 @@ public class TitForNWeightedTatsStrategy extends Strategy{
         c3Panel.add(c3Slider,BorderLayout.CENTER);
         c4Panel.add(c4Slider,BorderLayout.CENTER);
         wPanel.add(wSlider,BorderLayout.CENTER);
+        optimismPanel.add(optimismSlider,BorderLayout.CENTER);
         egoPanel.add(egoSlider,BorderLayout.CENTER);
         egoStdDevPanel.add(egoStdDevSlider,BorderLayout.CENTER);
         altPanel.add(altSlider,BorderLayout.CENTER);
@@ -1150,6 +1195,7 @@ public class TitForNWeightedTatsStrategy extends Strategy{
         sliderPane.add(c3Panel);
         sliderPane.add(c4Panel);
         sliderPane.add(wPanel);
+        sliderPane.add(optimismPanel);
         sliderPane.add(egoPanel);
         sliderPane.add(egoStdDevPanel);
         sliderPane.add(altPanel);
