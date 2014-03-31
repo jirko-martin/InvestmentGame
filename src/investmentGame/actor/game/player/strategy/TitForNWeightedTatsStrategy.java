@@ -5,12 +5,8 @@ import investmentGame.actor.game.Exchange;
 import investmentGame.actor.game.Game;
 import investmentGame.actor.game.PlayerInterface;
 import investmentGame.actor.game.Transfer;
-import investmentGame.swing.RoundedPanel;
-import javafx.scene.web.HTMLEditor;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -37,7 +33,7 @@ public class TitForNWeightedTatsStrategy extends Strategy{
 
     public class MotivationalStrategyComponent{
 
-        public double egoismCoefficient = 0.3;
+        public double egoismCoefficient = 0.55;
         public double egoismStandardDeviation = 0.1;
 
         public double altruismCoefficient = 0.3;
@@ -46,7 +42,7 @@ public class TitForNWeightedTatsStrategy extends Strategy{
         public double aggressionCoefficient = 0.1;
         public double aggressionStandardDeviation = 0.1;
 
-        public double competitivenessCoefficient = 0.5;
+        public double competitivenessCoefficient = 0.75;
         public double competitivenessStandardDeviation = 0.1;
 
         public double getEgoismStandardDeviation() {
@@ -112,8 +108,29 @@ public class TitForNWeightedTatsStrategy extends Strategy{
         public void setCompetitivenessCoefficient(double competitivenessCoefficient) {
             this.competitivenessCoefficient = competitivenessCoefficient;
         }
+
+        public double calcEgoismComponentA(double expectedPercentageTransferBOpponent, PlayerInterface opponent){
+
+            double currentBalance = getPlayer().getCreditBalance();
+
+            try {
+                Transfer transferA = new Exchange.TransferA(getPlayer(),opponent,getBaseMeanA()*currentBalance, Configuration.transferAMultiplier);
+                Transfer transferB = new Exchange.TransferB(opponent,getPlayer(),expectedPercentageTransferBOpponent*transferA.getRecipientsBalanceDelta());
+
+                double expectedBalanceDelta = transferA.getSendersBalanceDelta() + transferB.getRecipientsBalanceDelta();
+
+                double expectedBalance = (currentBalance+expectedBalanceDelta);
+
+                return expectedBalance>0 ? (expectedBalanceDelta / expectedBalance) : (currentBalance > 0 ? -1 : 0);
+
+            } catch (Transfer.InvalidTransferException e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            }
+
+        }
         
-        public double calcEgoismComponent(){
+        public double calcEgoismComponentB(){
             try {
                 
                 double gainMeBMin = getPlayer().getGame().getCurrentRoundExchange().getTransferA().getRecipientsBalanceDelta();
@@ -130,7 +147,28 @@ public class TitForNWeightedTatsStrategy extends Strategy{
             }
         }
 
-        public double calcAltruismComponent(){
+        public double calcAltruismComponentA(double expectedPercentageTransferBOpponent, PlayerInterface opponent){
+
+            double currentBalanceOpponent = opponent.getCreditBalance();
+
+            try {
+                Transfer transferA = new Exchange.TransferA(getPlayer(),opponent,getBaseMeanA()*getPlayer().getCreditBalance(), Configuration.transferAMultiplier);
+                Transfer transferB = new Exchange.TransferB(opponent,getPlayer(),expectedPercentageTransferBOpponent*transferA.getRecipientsBalanceDelta());
+
+                double expectedBalanceDeltaOpponent = transferA.getRecipientsBalanceDelta() + transferB.getSendersBalanceDelta();
+
+                double expectedBalanceOpponent = (currentBalanceOpponent+expectedBalanceDeltaOpponent);
+
+                return expectedBalanceOpponent > 0 ? (expectedBalanceDeltaOpponent / expectedBalanceOpponent) : 0;
+
+            } catch (Transfer.InvalidTransferException e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            }
+
+        }
+
+        public double calcAltruismComponentB(){
             try {
 
                 Exchange.TransferB maxBTransfer = new Exchange.TransferB(getPlayer(),getPlayer().getGame().getCurrentRoundExchange().getTransferA().getSender(),getPlayer().getGame().getCurrentRoundExchange().getTransferA().getRecipientsBalanceDelta());
@@ -153,7 +191,28 @@ public class TitForNWeightedTatsStrategy extends Strategy{
             }
         }
 
-        public double calcAggressionComponent(){
+        public double calcAggressionComponentA(double expectedPercentageTransferBOpponent, PlayerInterface opponent){
+
+            double currentBalanceOpponent = opponent.getCreditBalance();
+
+            try {
+                Transfer transferA = new Exchange.TransferA(getPlayer(),opponent,getBaseMeanA()*getPlayer().getCreditBalance(), Configuration.transferAMultiplier);
+                Transfer transferB = new Exchange.TransferB(opponent,getPlayer(),expectedPercentageTransferBOpponent*transferA.getRecipientsBalanceDelta());
+
+                double expectedBalanceDeltaOpponent = transferA.getRecipientsBalanceDelta() + transferB.getSendersBalanceDelta();
+
+                double expectedBalanceOpponent = (currentBalanceOpponent+expectedBalanceDeltaOpponent);
+
+                return expectedBalanceOpponent > 0 ? -(expectedBalanceDeltaOpponent / expectedBalanceOpponent) : -1;
+
+            } catch (Transfer.InvalidTransferException e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            }
+
+        }
+
+        public double calcAggressionComponentB(){
             try {
 
                 double lossOpponentBMin = -1.0 * getPlayer().getGame().getCurrentRoundExchange().getTransferA().getSendersBalanceDelta();
@@ -169,8 +228,48 @@ public class TitForNWeightedTatsStrategy extends Strategy{
                 throw new RuntimeException(e);
             }
         }
+
+        public double calcCompetitivenessComponentA(double expectedPercentageTransferBOpponent, PlayerInterface opponent){
+            double totalCapitalInGame = getPlayer().getGame().getTotalCapitalInGame();
+
+
+            try {
+
+                double fractionMeNow = getPlayer().getCreditBalance() / totalCapitalInGame;
+                double fractionOpponentNow = opponent.getCreditBalance() / totalCapitalInGame;
+
+                double distanceStatus = fractionMeNow - fractionOpponentNow;
+
+                Transfer transferA = new Exchange.TransferA(getPlayer(),opponent,getBaseMeanA()*getPlayer().getCreditBalance(), Configuration.transferAMultiplier);
+                Transfer transferB = new Exchange.TransferB(opponent,getPlayer(),expectedPercentageTransferBOpponent*transferA.getRecipientsBalanceDelta());
+
+                double expectedBalanceDelta = transferA.getSendersBalanceDelta() + transferB.getRecipientsBalanceDelta();
+
+                double expectedBalance = (getPlayer().getCreditBalance()+expectedBalanceDelta);
+
+                double expectedBalanceDeltaOpponent = transferA.getRecipientsBalanceDelta() + transferB.getSendersBalanceDelta();
+
+                double expectedBalanceOpponent = (opponent.getCreditBalance()+expectedBalanceDeltaOpponent);
+
+                double totalCapitalInGamePost = totalCapitalInGame + transferA.getSendersBalanceDelta() + transferA.getRecipientsBalanceDelta();
+
+                double fractionMePost = expectedBalance / totalCapitalInGamePost;
+                double fractionOpponentPost = expectedBalanceOpponent / totalCapitalInGamePost;
+
+                double distanceStatusPost = fractionMePost - fractionOpponentPost;
+
+                return distanceStatusPost - distanceStatus;
+
+
+            } catch (Transfer.InvalidTransferException e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            }
+
+
+        }
         
-        public double calcCompetitivenessComponent(){
+        public double calcCompetitivenessComponentB(){
             double totalCapitalInGame = getPlayer().getGame().getTotalCapitalInGame();
 
 
@@ -199,7 +298,7 @@ public class TitForNWeightedTatsStrategy extends Strategy{
 
         }
         
-        public double calculateMotivationalComplex(){
+        public double calculateMotivationalComplexA(PlayerInterface opponent, double expectedReTransferFractionBOpponent){
             
             double egoism = getRandom().nextGaussian() * getEgoismStandardDeviation() + getEgoismCoefficient();
             double altruism = getRandom().nextGaussian() * getAltruismStandardDeviation() + getAltruismCoefficient();
@@ -209,11 +308,28 @@ public class TitForNWeightedTatsStrategy extends Strategy{
             double coefficientSum = egoism + altruism + aggressiveness + competitiveness;
             
             return (
-                    -1.0 * egoism          * calcEgoismComponent() 
-                   + 1.0 * altruism        * calcAltruismComponent() 
-                   - 1.0 * aggressiveness  * calcAggressionComponent() 
-                   + 1.0 * competitiveness * calcCompetitivenessComponent()
-                    ) / coefficientSum;
+                     egoism          * calcEgoismComponentA(expectedReTransferFractionBOpponent,opponent)
+                   + altruism        * calcAltruismComponentA(expectedReTransferFractionBOpponent,opponent)
+                   + aggressiveness  * calcAggressionComponentA(expectedReTransferFractionBOpponent,opponent)
+                   + competitiveness * calcCompetitivenessComponentA(expectedReTransferFractionBOpponent,opponent)
+            ) / coefficientSum;
+        }
+
+        public double calculateMotivationalComplexB(){
+
+            double egoism = getRandom().nextGaussian() * getEgoismStandardDeviation() + getEgoismCoefficient();
+            double altruism = getRandom().nextGaussian() * getAltruismStandardDeviation() + getAltruismCoefficient();
+            double aggressiveness = getRandom().nextGaussian() * getAggressionStandardDeviation() + getAggressionCoefficient();
+            double competitiveness = getRandom().nextGaussian() * getCompetitivenessStandardDeviation() + getCompetitivenessCoefficient();
+
+            double coefficientSum = egoism + altruism + aggressiveness + competitiveness;
+
+            return (
+                     -1.0 * egoism          * calcEgoismComponentB()
+                    + 1.0 * altruism        * calcAltruismComponentB()
+                    - 1.0 * aggressiveness  * calcAggressionComponentB()
+                    + 1.0 * competitiveness * calcCompetitivenessComponentB()
+            ) / coefficientSum;
         }
         
     }
@@ -242,7 +358,7 @@ public class TitForNWeightedTatsStrategy extends Strategy{
 
     private double c3 = 0.5;
 
-    private double c4 = 0.9;
+    private double c4 = 0.5;
 
 
     private boolean titForTatIncludeOtherPlayersExperience = true;
@@ -362,11 +478,33 @@ public class TitForNWeightedTatsStrategy extends Strategy{
         if (Double.isNaN(TFT2))
             TFT2 = 0.5;
 
+        double TFT1 = getEvaluationOfOpponent(opponent, new ExchangeExtractor() {
+            @Override
+            public double extractValue0_1(Exchange exchange) {
+                try {
+                    return exchange.getTransferA().getCreditsTransferred() > 0
+                            ? (exchange.getTransferB().getRecipientsBalanceDelta() / exchange.getTransferA().getRecipientsBalanceDelta())
+                            : (2.0 / 3.0);
+                } catch (Exchange.TransferNotCommittedException e) {
+                    e.printStackTrace();
+                    throw new RuntimeException(e);
+                }
+
+            }
+        });
+
+        if (Double.isNaN(TFT1))
+            TFT1 = 0.5;
+
+        double MOTIVATION = motivationalStrategyComponent.calculateMotivationalComplexA(opponent,TFT1);
 
         double gaussian = Math.round(
 
                 getRandom().nextGaussian() * getStandardDeviationA()
-                + 100.0 * getC4() * ( (getC3() * TFT2) + ((1 - getC3()) * (getBaseMeanA() / 100.0)) )
+                + 100.0 * (
+                               getC4()  * ( (getC3() * TFT2) + ((1 - getC3()) * (getBaseMeanA() / 100.0)) )
+                       +( (1 - getC4()) * MOTIVATION)
+                )
 
         );
 
@@ -406,7 +544,7 @@ public class TitForNWeightedTatsStrategy extends Strategy{
 
                     //double NUH = currentExchange.getTransferA().getRecipientsBalanceDelta() / getPlayer().getCreditBalance();
                     
-                    double MOTIVATION = motivationalStrategyComponent.calculateMotivationalComplex();
+                    double MOTIVATION = motivationalStrategyComponent.calculateMotivationalComplexB();
 
                     double gaussian = Math.round(
 
