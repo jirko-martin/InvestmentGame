@@ -1,6 +1,5 @@
 package investmentGame.actor.game.player.strategy;
 
-import investmentGame.actor.Player;
 import investmentGame.actor.game.Exchange;
 import investmentGame.actor.game.Game;
 import investmentGame.actor.game.PlayerInterface;
@@ -11,7 +10,6 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Random;
 
@@ -22,7 +20,7 @@ import java.util.Random;
  * Time: 18:07
  * To change this template use File | Settings | File Templates.
  */
-public class GaussianStrategy extends Strategy{
+public class GaussianChooseAmountStrategy extends ChooseAmountStrategy {
 
     //the values mean percentages
 
@@ -78,59 +76,6 @@ public class GaussianStrategy extends Strategy{
     @Override
     public String getFullDescription() {
         return toString();
-    }
-
-    @Override
-    public PlayerInterface selectOpponentForTransferA() {
-
-        Iterator<PlayerInterface> playerInterfaceIterator = getPlayer().getOpponents().iterator();
-
-        int minFrequency = Integer.MAX_VALUE;
-        PlayerInterface minFrequentPlayer = null;
-
-        while (playerInterfaceIterator.hasNext()){
-
-            PlayerInterface playerInterface = playerInterfaceIterator.next();
-
-            Iterator<Exchange> exchangeIterator = getPlayer().getGame().getExchanges().iterator();
-
-            int frequency = 0;
-
-            while (exchangeIterator.hasNext()){
-
-                Exchange exchange = exchangeIterator.next();
-
-                try {
-                    if (exchange.transferAIsCommitted()){
-
-                        PlayerInterface secondaryPlayerExchange = exchange.getTransferA().getRecipient();
-
-                        if (secondaryPlayerExchange.equals(playerInterface)){
-                            frequency++;
-                        }
-                    }
-
-                } catch (Exchange.TransferNotCommittedException e) {
-                    e.printStackTrace();
-                    throw new RuntimeException(e);
-                }
-
-            }
-
-            if (frequency<minFrequency){
-                minFrequency = frequency;
-                minFrequentPlayer = playerInterface;
-            }
-
-        }
-
-        if (minFrequentPlayer==null){
-            ArrayList<PlayerInterface> opponents = new ArrayList<PlayerInterface>(getPlayer().getOpponents());
-
-            return opponents.get((int)Math.round(Math.random()*(opponents.size()-1)));
-        }else{
-            return minFrequentPlayer;
-        }
     }
 
     @Override

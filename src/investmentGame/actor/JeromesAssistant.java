@@ -1,7 +1,8 @@
 package investmentGame.actor;
 
 import investmentGame.Configuration;
-import investmentGame.actor.game.player.strategy.Strategy;
+import investmentGame.actor.game.player.strategy.ChooseAmountStrategy;
+import investmentGame.actor.game.player.strategy.SelectOpponentStrategy;
 import investmentGame.swing.ImagePreviewPanel;
 import madkit.kernel.Agent;
 import madkit.kernel.AgentAddress;
@@ -56,19 +57,25 @@ public class JeromesAssistant extends Agent{
 
         public static class ComputerPlayerSpecification extends PlayerSpecification{
 
-            private Strategy strategy;
+            private ChooseAmountStrategy chooseAmountStrategy;
+            private SelectOpponentStrategy selectOpponentStrategy;
 
-            public ComputerPlayerSpecification(String name, String pictureFileName,Strategy strategy){
+            public ComputerPlayerSpecification(String name, String pictureFileName,ChooseAmountStrategy chooseAmountStrategy, SelectOpponentStrategy selectOpponentStrategy){
                 super(name,pictureFileName);
-                this.strategy = strategy;
+                this.chooseAmountStrategy = chooseAmountStrategy;
+                this.selectOpponentStrategy = selectOpponentStrategy;
             }
 
             public String toString(){
                 return "Computer-Spieler "+getName();
             }
 
-            public Strategy getStrategy() {
-                return strategy;
+            public ChooseAmountStrategy getChooseAmountStrategy() {
+                return chooseAmountStrategy;
+            }
+
+            public SelectOpponentStrategy getSelectOpponentStrategy() {
+                return selectOpponentStrategy;
             }
         }
 
@@ -239,6 +246,97 @@ public class JeromesAssistant extends Agent{
 
             parameterPanel.add(roundsPanel);
 
+            JPanel delayPanelA = new JPanel(new GridLayout(1,2));
+
+            delayPanelA.add(new JLabel("Delay ACK Turn A (ms)"));
+
+            final JTextField delayInputA = new JTextField(""+Configuration.Timings.delayAcknowledgeInfoTransferMSecTurnA);
+
+            delayInputA.addFocusListener(new FocusListener() {
+                @Override
+                public void focusGained(FocusEvent e) {
+                    //To change body of implemented methods use File | Settings | File Templates.
+                }
+
+                @Override
+                public void focusLost(FocusEvent e) {
+                    try{
+                        int delay = Integer.parseInt(delayInputA.getText());
+                        if (delay>0)
+                            Configuration.Timings.delayAcknowledgeInfoTransferMSecTurnA = delay;
+                        else
+                            delayInputA.setText(""+Configuration.Timings.delayAcknowledgeInfoTransferMSecTurnA);
+                    }catch (NumberFormatException nfe){
+                        delayInputA.setText(""+Configuration.Timings.delayAcknowledgeInfoTransferMSecTurnA);
+                    }
+                }
+            });
+
+            delayPanelA.add(delayInputA);
+
+            parameterPanel.add(delayPanelA);
+
+            JPanel delayPanelB = new JPanel(new GridLayout(1,2));
+
+            delayPanelB.add(new JLabel("Delay ACK Turn B (ms)"));
+
+            final JTextField delayInputB = new JTextField(""+Configuration.Timings.delayAcknowledgeInfoTransferMSecTurnB);
+
+            delayInputB.addFocusListener(new FocusListener() {
+                @Override
+                public void focusGained(FocusEvent e) {
+                    //To change body of implemented methods use File | Settings | File Templates.
+                }
+
+                @Override
+                public void focusLost(FocusEvent e) {
+                    try{
+                        int delay = Integer.parseInt(delayInputB.getText());
+                        if (delay>0)
+                            Configuration.Timings.delayAcknowledgeInfoTransferMSecTurnB = delay;
+                        else
+                            delayInputB.setText(""+Configuration.Timings.delayAcknowledgeInfoTransferMSecTurnB);
+                    }catch (NumberFormatException nfe){
+                        delayInputB.setText(""+Configuration.Timings.delayAcknowledgeInfoTransferMSecTurnB);
+                    }
+                }
+            });
+
+            delayPanelB.add(delayInputB);
+
+            parameterPanel.add(delayPanelB);
+
+            JPanel showForMSecPanel = new JPanel(new GridLayout(1,2));
+
+            showForMSecPanel.add(new JLabel("Show Transfer for (ms)"));
+
+            final JTextField showForMSecInput = new JTextField(""+Configuration.Timings.showTransferInGUIForMSec);
+
+            showForMSecInput.addFocusListener(new FocusListener() {
+                @Override
+                public void focusGained(FocusEvent e) {
+                    //To change body of implemented methods use File | Settings | File Templates.
+                }
+
+                @Override
+                public void focusLost(FocusEvent e) {
+                    try{
+                        int delay = Integer.parseInt(showForMSecInput.getText());
+                        if (delay>0)
+                            Configuration.Timings.showTransferInGUIForMSec = delay;
+                        else
+                            showForMSecInput.setText(""+Configuration.Timings.showTransferInGUIForMSec);
+                    }catch (NumberFormatException nfe){
+                        showForMSecInput.setText(""+Configuration.Timings.showTransferInGUIForMSec);
+                    }
+                }
+            });
+
+            showForMSecPanel.add(showForMSecInput);
+
+            parameterPanel.add(showForMSecPanel);
+
+
             JPanel playersPanel = new JPanel(new BorderLayout());
 
             JPanel playersPanelButtons = new JPanel(new GridLayout(1,2));
@@ -335,11 +433,16 @@ public class JeromesAssistant extends Agent{
 
                 File pictureFile;
 
+                String name;
+
                 ImageIcon picture;
 
-                Strategy strategy;
+                ChooseAmountStrategy chooseAmountStrategy;
+                
+                SelectOpponentStrategy selectOpponentStrategy;
 
-                JPanel strategyConfigurationPanel;
+                JPanel strategyConfigurationPanelChooseAmount;
+                JPanel strategyConfigurationPanelSelectOpponent;
 
                 public File getPictureFile() {
                     return pictureFile;
@@ -349,12 +452,28 @@ public class JeromesAssistant extends Agent{
                     this.pictureFile = pictureFile;
                 }
 
-                public Strategy getStrategy() {
-                    return strategy;
+                public String getName() {
+                    return name;
                 }
 
-                public void setStrategy(Strategy strategy) {
-                    this.strategy = strategy;
+                public void setName(String name) {
+                    this.name = name;
+                }
+
+                public ChooseAmountStrategy getChooseAmountStrategy() {
+                    return chooseAmountStrategy;
+                }
+
+                public SelectOpponentStrategy getSelectOpponentStrategy() {
+                    return selectOpponentStrategy;
+                }
+
+                public void setChooseAmountStrategy(ChooseAmountStrategy chooseAmountStrategy) {
+                    this.chooseAmountStrategy = chooseAmountStrategy;
+                }
+
+                public void setSelectOpponentStrategy(SelectOpponentStrategy selectOpponentStrategy) {
+                    this.selectOpponentStrategy = selectOpponentStrategy;
                 }
 
                 @Override
@@ -387,7 +506,10 @@ public class JeromesAssistant extends Agent{
 
                             String picturePath = ((getPictureFile()!=null && getPictureFile().exists()) ? getPictureFile().getAbsolutePath() : null);
 
-                            getGameSpecification().addPlayerSpecification(new GameSpecification.ComputerPlayerSpecification("COMPUTER-SPIELER", picturePath,getStrategy()));
+                            getGameSpecification().addPlayerSpecification(new GameSpecification.ComputerPlayerSpecification(getName(),
+                                                                                                                            picturePath, 
+                                                                                                                            getChooseAmountStrategy(), 
+                                                                                                                            getSelectOpponentStrategy()));
                             Vector<GameSpecification.PlayerSpecification> listspec = new Vector<GameSpecification.PlayerSpecification>();
                             for (GameSpecification.PlayerSpecification playerSpecification : getGameSpecification().getPlayerSpecifications()) {
                                 listspec.add(playerSpecification);
@@ -499,19 +621,48 @@ public class JeromesAssistant extends Agent{
 
                     picturePane.setPreferredSize(new Dimension(400,300));
 
-                    mainPane.add(picturePane,BorderLayout.WEST);
+                    JPanel leftPane = new JPanel(new BorderLayout());
 
-                    final JPanel strategyPane = new JPanel(new BorderLayout());
+                    JPanel namePane = new JPanel(new BorderLayout());
 
-                    strategyPane.setBorder(new TitledBorder("Strategie des Spielers"));
+                    namePane.add(new JLabel("Name"), BorderLayout.WEST);
 
-                    List<Strategy> strategies = new LinkedList<Strategy>();
+                    setName("COMPUTER_PLAYER_"+ComputerPlayer.instanceCounter++);
 
-                    for (int i=0;i<Configuration.strategies.length;i++){
+                    final JTextField nameInput = new JTextField(getName());
+
+                    namePane.add(nameInput, BorderLayout.CENTER);
+
+                    nameInput.addFocusListener(new FocusListener() {
+                        @Override
+                        public void focusGained(FocusEvent e) {
+                            //To change body of implemented methods use File | Settings | File Templates.
+                        }
+
+                        @Override
+                        public void focusLost(FocusEvent e) {
+                            setName(nameInput.getText());
+                        }
+                    });
+
+                    leftPane.add(namePane, BorderLayout.NORTH);
+                    leftPane.add(picturePane, BorderLayout.CENTER);
+
+                    mainPane.add(leftPane,BorderLayout.WEST);
+                    
+                    JTabbedPane strategyPane = new JTabbedPane(JTabbedPane.TOP);
+
+                    final JPanel chooseAmountStrategyPane = new JPanel(new BorderLayout());
+
+                    chooseAmountStrategyPane.setBorder(new TitledBorder("Strategie des Spielers (Betrag überweisen)"));
+
+                    List<ChooseAmountStrategy> chooseAmountStrategies = new LinkedList<ChooseAmountStrategy>();
+
+                    for (int i=0;i<Configuration.chooseAmountStrategies.length;i++){
                         try {
-                            Object strategyCandidate = Configuration.strategies[i].newInstance();
-                            if (strategyCandidate instanceof Strategy){
-                                strategies.add((Strategy)strategyCandidate);
+                            Object strategyCandidate = Configuration.chooseAmountStrategies[i].newInstance();
+                            if (strategyCandidate instanceof ChooseAmountStrategy){
+                                chooseAmountStrategies.add((ChooseAmountStrategy)strategyCandidate);
                             }
                         } catch (InstantiationException e1) {
                             e1.printStackTrace();
@@ -522,45 +673,111 @@ public class JeromesAssistant extends Agent{
                         }
                     }
 
-                    final JComboBox<Strategy> strategySelectionBox = new JComboBox<Strategy>(new Vector<Strategy>(strategies));
+                    final JComboBox<ChooseAmountStrategy> chooseAmountStrategySelectionBox = new JComboBox<ChooseAmountStrategy>(new Vector<ChooseAmountStrategy>(chooseAmountStrategies));
 
-                    strategySelectionBox.setSelectedIndex(0);
+                    chooseAmountStrategySelectionBox.setSelectedIndex(0);
 
-                    Strategy strategySelected = strategySelectionBox.getItemAt(0);
+                    ChooseAmountStrategy chooseAmountStrategySelected = chooseAmountStrategySelectionBox.getItemAt(0);
 
-                    setStrategy(strategySelected);
+                    setChooseAmountStrategy(chooseAmountStrategySelected);
 
-                    if (strategySelected.isConfigurable()){
-                        strategyConfigurationPanel = strategySelected.getConfigurationPanel();
-                        strategyPane.add(strategyConfigurationPanel,BorderLayout.CENTER);
+                    if (chooseAmountStrategySelected.isConfigurable()){
+                        strategyConfigurationPanelChooseAmount = chooseAmountStrategySelected.getConfigurationPanel();
+                        chooseAmountStrategyPane.add(strategyConfigurationPanelChooseAmount,BorderLayout.CENTER);
                     }
 
-                    strategySelectionBox.addActionListener(new ActionListener() {
+                    chooseAmountStrategySelectionBox.addActionListener(new ActionListener() {
                         @Override
                         public void actionPerformed(ActionEvent e) {
 
-                            Strategy strategySelected = (Strategy)strategySelectionBox.getSelectedItem();
+                            ChooseAmountStrategy chooseAmountStrategySelected = (ChooseAmountStrategy)chooseAmountStrategySelectionBox.getSelectedItem();
 
-                            setStrategy(strategySelected);
+                            setChooseAmountStrategy(chooseAmountStrategySelected);
 
-                            if (strategyConfigurationPanel != null){
-                                strategyPane.remove(strategyConfigurationPanel);
-                                strategyPane.validate();
-                                strategyPane.repaint();
-                                strategyConfigurationPanel = null;
+                            if (strategyConfigurationPanelChooseAmount != null){
+                                chooseAmountStrategyPane.remove(strategyConfigurationPanelChooseAmount);
+                                chooseAmountStrategyPane.validate();
+                                chooseAmountStrategyPane.repaint();
+                                strategyConfigurationPanelChooseAmount = null;
                             }
 
-                            if (strategySelected.isConfigurable()){
-                                strategyConfigurationPanel = strategySelected.getConfigurationPanel();
-                                strategyPane.add(strategyConfigurationPanel,BorderLayout.CENTER);
-                                strategyPane.validate();
-                                strategyPane.repaint();
+                            if (chooseAmountStrategySelected.isConfigurable()){
+                                strategyConfigurationPanelChooseAmount = chooseAmountStrategySelected.getConfigurationPanel();
+                                chooseAmountStrategyPane.add(strategyConfigurationPanelChooseAmount,BorderLayout.CENTER);
+                                chooseAmountStrategyPane.validate();
+                                chooseAmountStrategyPane.repaint();
                             }
                         }
                     });
 
-                    strategyPane.add(strategySelectionBox,BorderLayout.NORTH);
+                    chooseAmountStrategyPane.add(chooseAmountStrategySelectionBox,BorderLayout.NORTH);
 
+                    strategyPane.add("Amount Strategy",chooseAmountStrategyPane);
+
+                    //--
+
+                    final JPanel selectOpponentStrategyPane = new JPanel(new BorderLayout());
+
+                    selectOpponentStrategyPane.setBorder(new TitledBorder("Strategie des Spielers (Mitspieler auswählen)"));
+
+                    List<SelectOpponentStrategy> selectOpponentStrategies = new LinkedList<SelectOpponentStrategy>();
+
+                    for (int i=0;i<Configuration.selectOpponentStrategies.length;i++){
+                        try {
+                            Object strategyCandidate = Configuration.selectOpponentStrategies[i].newInstance();
+                            if (strategyCandidate instanceof SelectOpponentStrategy){
+                                selectOpponentStrategies.add((SelectOpponentStrategy)strategyCandidate);
+                            }
+                        } catch (InstantiationException e1) {
+                            e1.printStackTrace();
+                            throw new RuntimeException(e1);
+                        } catch (IllegalAccessException e1) {
+                            e1.printStackTrace();
+                            throw new RuntimeException(e1);
+                        }
+                    }
+
+                    final JComboBox<SelectOpponentStrategy> selectOpponentStrategySelectionBox = new JComboBox<SelectOpponentStrategy>(new Vector<SelectOpponentStrategy>(selectOpponentStrategies));
+
+                    selectOpponentStrategySelectionBox.setSelectedIndex(0);
+
+                    SelectOpponentStrategy selectOpponentStrategySelected = selectOpponentStrategySelectionBox.getItemAt(0);
+
+                    setSelectOpponentStrategy(selectOpponentStrategySelected);
+
+                    if (selectOpponentStrategySelected.isConfigurable()){
+                        strategyConfigurationPanelSelectOpponent = chooseAmountStrategySelected.getConfigurationPanel();
+                        chooseAmountStrategyPane.add(strategyConfigurationPanelSelectOpponent,BorderLayout.CENTER);
+                    }
+
+                    selectOpponentStrategySelectionBox.addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+
+                            SelectOpponentStrategy selectOpponentStrategySelected = (SelectOpponentStrategy)selectOpponentStrategySelectionBox.getSelectedItem();
+
+                            setSelectOpponentStrategy(selectOpponentStrategySelected);
+
+                            if (strategyConfigurationPanelSelectOpponent != null){
+                                selectOpponentStrategyPane.remove(strategyConfigurationPanelSelectOpponent);
+                                selectOpponentStrategyPane.validate();
+                                selectOpponentStrategyPane.repaint();
+                                strategyConfigurationPanelSelectOpponent = null;
+                            }
+
+                            if (selectOpponentStrategySelected.isConfigurable()){
+                                strategyConfigurationPanelSelectOpponent = selectOpponentStrategySelected.getConfigurationPanel();
+                                selectOpponentStrategyPane.add(strategyConfigurationPanelSelectOpponent,BorderLayout.CENTER);
+                                selectOpponentStrategyPane.validate();
+                                selectOpponentStrategyPane.repaint();
+                            }
+                        }
+                    });
+
+                    selectOpponentStrategyPane.add(selectOpponentStrategySelectionBox,BorderLayout.NORTH);
+
+                    strategyPane.add("Select Opponent Strategy",selectOpponentStrategyPane);
+                    
                     mainPane.add(strategyPane,BorderLayout.CENTER);
 
                     dialogPane.add(mainPane,BorderLayout.CENTER);
@@ -694,11 +911,15 @@ public class JeromesAssistant extends Agent{
 
             if (spec instanceof GameSpecification.ComputerPlayerSpecification){
 
-                Strategy strategy = ((GameSpecification.ComputerPlayerSpecification) spec).getStrategy();
+                ChooseAmountStrategy chooseAmountStrategy = ((GameSpecification.ComputerPlayerSpecification) spec).getChooseAmountStrategy();
 
-                ComputerPlayer computerPlayer = new ComputerPlayer(spec.getPictureFileName(),strategy);
+                SelectOpponentStrategy selectOpponentStrategy = ((GameSpecification.ComputerPlayerSpecification) spec).getSelectOpponentStrategy();
+                
+                ComputerPlayer computerPlayer = new ComputerPlayer(spec.getName(),spec.getPictureFileName(), chooseAmountStrategy, selectOpponentStrategy);
 
-                strategy.setPlayer(computerPlayer);
+                chooseAmountStrategy.setPlayer(computerPlayer);
+
+                selectOpponentStrategy.setPlayer(computerPlayer);
 
                 launchAgent(computerPlayer, launchedHumanPlayers == 0 && first);
 

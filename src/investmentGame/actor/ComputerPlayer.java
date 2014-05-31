@@ -3,8 +3,8 @@ package investmentGame.actor;
 import investmentGame.actor.game.Exchange;
 import investmentGame.actor.game.Game;
 import investmentGame.actor.game.PlayerInterface;
-import investmentGame.actor.game.player.strategy.RandomStrategy;
-import investmentGame.actor.game.player.strategy.Strategy;
+import investmentGame.actor.game.player.strategy.ChooseAmountStrategy;
+import investmentGame.actor.game.player.strategy.SelectOpponentStrategy;
 import madkit.message.ActMessage;
 
 /**
@@ -16,13 +16,15 @@ import madkit.message.ActMessage;
  */
 public class ComputerPlayer extends Player {
 
-    private Strategy strategy;
+    private ChooseAmountStrategy chooseAmountStrategy;
+    private SelectOpponentStrategy selectOpponentStrategy;
 
-    private static int instanceCounter = 0;
+    public static int instanceCounter = 0;
 
-    public ComputerPlayer(String picturePath,Strategy strategy){
-        super("COMPUTER_PLAYER_"+(instanceCounter++),picturePath);
-        this.strategy = strategy; //TODO just for the moment!!
+    public ComputerPlayer(String name, String picturePath,ChooseAmountStrategy chooseAmountStrategy, SelectOpponentStrategy selectOpponentStrategy){
+        super(name,picturePath);
+        this.chooseAmountStrategy = chooseAmountStrategy;
+        this.selectOpponentStrategy = selectOpponentStrategy;
     }
 
     @Override
@@ -36,8 +38,8 @@ public class ComputerPlayer extends Player {
 
     @Override
     public void onMyTurnA() {
-        PlayerInterface opponent = strategy.selectOpponentForTransferA();
-        double amountCreditsToTransfer = strategy.chooseCreditAmountForTransferA(opponent);
+        PlayerInterface opponent = selectOpponentStrategy.selectOpponentForTransferA();
+        double amountCreditsToTransfer = chooseAmountStrategy.chooseCreditAmountForTransferA(opponent);
         String transferDesc = "<player> "+getPlayersName()+" <decides_to_transfer> "+((int)amountCreditsToTransfer)+" <credits> <to> <player> "+opponent.getPlayersName();
         receiveMessage(new ActMessage("decide_on_transfer_A",transferDesc));
     }
@@ -46,7 +48,7 @@ public class ComputerPlayer extends Player {
     public void onMyTurnB() {
         try {
             PlayerInterface opponent = game.getCurrentRoundExchange().getTransferA().getSender();
-            double amountCreditsToTransfer = strategy.chooseCreditAmountForTransferB(opponent);
+            double amountCreditsToTransfer = chooseAmountStrategy.chooseCreditAmountForTransferB(opponent);
             String transferDesc = "<player> "+getPlayersName()+" <decides_to_transfer> "+((int)amountCreditsToTransfer)+" <credits> <to> <player> "+opponent.getPlayersName();
             receiveMessage(new ActMessage("decide_on_transfer_B",transferDesc));
         } catch (Exchange.TransferNotCommittedException e) {

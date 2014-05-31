@@ -257,7 +257,9 @@ public class PlayersGame extends Game {
                 if (((int)t.getCreditsTransferred())>=0){
 
                     try{
-                        Thread.sleep(Configuration.Timings.delayAcknowledgeInfoTransferMSec);
+                        Thread.sleep(t instanceof Exchange.TransferA ?
+                                Configuration.Timings.delayAcknowledgeInfoTransferMSecTurnA :
+                                Configuration.Timings.delayAcknowledgeInfoTransferMSecTurnB);
                     }catch(InterruptedException ie){
                         ie.printStackTrace();
                         throw new RuntimeException(ie);
@@ -272,7 +274,7 @@ public class PlayersGame extends Game {
         }.start();
     }
 
-    public void showTransferInGUI(final Transfer transfer){
+    public void processTransfer(final Transfer transfer){
         if (gui != null){
 
             if (((int)transfer.getCreditsTransferred())>=0){
@@ -291,6 +293,8 @@ public class PlayersGame extends Game {
 
                                 gui.showTransaction(null, (transfer instanceof Exchange.TransferA) ? exchange : null);
 
+                                acknowledgeTransaction(transfer); //TODO check this
+
                             }catch (InterruptedException e){
                                 e.printStackTrace();
                                 throw new RuntimeException(e);
@@ -305,6 +309,8 @@ public class PlayersGame extends Game {
 
             }
 
+        }else{
+            acknowledgeTransaction(transfer); //TODO check this
         }
     }
 
@@ -490,9 +496,9 @@ public class PlayersGame extends Game {
 
                                     game.confirmExecute(transferA);
 
-                                    showTransferInGUI(transferA);
+                                    processTransfer(transferA);
 
-                                    acknowledgeTransaction(transferA);
+                                    //acknowledgeTransaction(transferA);
 
                                     return gameStates.get("waiting_2");
 
@@ -543,11 +549,11 @@ public class PlayersGame extends Game {
 
                                     game.commit(transferB);
 
-                                    showTransferInGUI(transferB);
+                                    processTransfer(transferB);
 
                                     game.confirmExecute(transferB);
 
-                                    acknowledgeTransaction(transferB);
+                                    //acknowledgeTransaction(transferB);
 
                                     return gameStates.get("waiting_3");
 
@@ -606,11 +612,11 @@ public class PlayersGame extends Game {
 
                                     game.commit(transferA);
 
-                                    showTransferInGUI(transferA);
+                                    processTransfer(transferA);
 
                                     game.confirmExecute(transferA);
 
-                                    acknowledgeTransaction(transferA);
+                                    //acknowledgeTransaction(transferA);
 
                                     return gameStates.get("waiting_3");
 
@@ -634,11 +640,11 @@ public class PlayersGame extends Game {
 
                                     game.commit(transferB);
 
-                                    showTransferInGUI(transferB);
+                                    processTransfer(transferB);
 
                                     game.confirmExecute(transferB);
 
-                                    acknowledgeTransaction(transferB);
+                                    //acknowledgeTransaction(transferB);
 
                                     return gameStates.get("waiting_3");
 
@@ -704,11 +710,11 @@ public class PlayersGame extends Game {
 
                                 try {
 
-                                    showTransferInGUI(transferB);
+                                    processTransfer(transferB);
 
                                     game.confirmExecute(transferB);
 
-                                    acknowledgeTransaction(transferB);
+                                    //acknowledgeTransaction(transferB);
 
                                     return gameStates.get("waiting_3");
 

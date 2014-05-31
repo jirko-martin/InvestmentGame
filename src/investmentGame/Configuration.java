@@ -1,9 +1,6 @@
 package investmentGame;
 
-import investmentGame.actor.game.player.strategy.GaussianStrategy;
-import investmentGame.actor.game.player.strategy.RandomStrategy;
-import investmentGame.actor.game.player.strategy.Strategy;
-import investmentGame.actor.game.player.strategy.TitForNWeightedTatsStrategy;
+import investmentGame.actor.game.player.strategy.*;
 
 import java.awt.*;
 
@@ -34,17 +31,25 @@ public class Configuration {
 
     public static class Timings{
 
-        public static final long showTransferInGUIForMSec = 2000;
+        public static long showTransferInGUIForMSec = 2000;
 
-        public static final long delayAcknowledgeInfoTransferMSec = 2500;
+        public static long delayAcknowledgeInfoTransferMSecTurnA = 1000;
 
+        public static long delayAcknowledgeInfoTransferMSecTurnB = 1500;
     }
 
-    public static final Class[] strategies = {
+    public static final Class[] chooseAmountStrategies = {
 
-            GaussianStrategy.class,
-            RandomStrategy.class,
-            TitForNWeightedTatsStrategy.class
+            GaussianChooseAmountStrategy.class,
+            RandomChooseAmountStrategy.class,
+            TitForNWeightedTatsChooseAmountStrategy.class
+
+    };
+
+    public static final Class[] selectOpponentStrategies = {
+
+            FairSelectOpponentStrategy.class,
+            ExcludePlayerSelectOpponentStrategy.class
 
     };
 

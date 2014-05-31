@@ -1,12 +1,13 @@
 package investmentGame.actor;
 
 import investmentGame.Configuration;
-import investmentGame.actor.game.Transfer;
 import investmentGame.actor.game.coordinator.CoordinatorsGame;
 import investmentGame.actor.game.coordinator.CoordinatorsModelPlayer;
 import investmentGame.actor.game.PlayerInterface;
-import investmentGame.actor.game.player.strategy.RandomStrategy;
-import investmentGame.actor.game.player.strategy.Strategy;
+import investmentGame.actor.game.player.strategy.FairSelectOpponentStrategy;
+import investmentGame.actor.game.player.strategy.RandomChooseAmountStrategy;
+import investmentGame.actor.game.player.strategy.ChooseAmountStrategy;
+import investmentGame.actor.game.player.strategy.SelectOpponentStrategy;
 import madkit.kernel.Agent;
 import madkit.message.ActMessage;
 
@@ -135,9 +136,10 @@ public class Coordinator extends Agent{
             CoordinatorsGame game = new CoordinatorsGame(this,gameId,numberOfPlayersTotal,numberOfRounds);
 
             for (int i=0;i<numberOfComputerPlayersToInvite;i++){
-                Strategy strategy = new RandomStrategy();
-                final Player player = new ComputerPlayer(null, strategy);
-                strategy.setPlayer(player);
+                ChooseAmountStrategy chooseAmountStrategy = new RandomChooseAmountStrategy();
+                SelectOpponentStrategy selectOpponentStrategy = new FairSelectOpponentStrategy();
+                final Player player = new ComputerPlayer("",null, chooseAmountStrategy, selectOpponentStrategy);
+                chooseAmountStrategy.setPlayer(player);
                 launchAgent(player);
                 new Thread(){
                     @Override

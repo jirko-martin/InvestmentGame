@@ -12,7 +12,7 @@ import javax.swing.*;
  * Time: 16:54
  * To change this template use File | Settings | File Templates.
  */
-public abstract class Strategy {
+public abstract class ChooseAmountStrategy {
 
     private Player player;
 
@@ -31,8 +31,6 @@ public abstract class Strategy {
     public void setPlayer(Player player){
         this.player = player;
     }
-
-    public abstract PlayerInterface selectOpponentForTransferA();
 
     public abstract double chooseCreditAmountForTransferA(PlayerInterface opponent);
 

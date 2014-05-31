@@ -1,6 +1,5 @@
 package investmentGame.actor.game.player.strategy;
 
-import investmentGame.actor.Player;
 import investmentGame.actor.game.Exchange;
 import investmentGame.actor.game.Game;
 import investmentGame.actor.game.PlayerInterface;
@@ -15,7 +14,7 @@ import java.util.ArrayList;
  * Time: 20:48
  * To change this template use File | Settings | File Templates.
  */
-public class RandomStrategy extends Strategy {
+public class RandomChooseAmountStrategy extends ChooseAmountStrategy {
 
 
     @Override
@@ -31,13 +30,6 @@ public class RandomStrategy extends Strategy {
     @Override
     public String getFullDescription() {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public PlayerInterface selectOpponentForTransferA() {
-        ArrayList<PlayerInterface> opponents = new ArrayList<PlayerInterface>(getPlayer().getOpponents());
-
-        return opponents.get((int)Math.round(Math.random()*(opponents.size()-1)));
     }
 
     @Override
