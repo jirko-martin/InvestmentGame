@@ -11,6 +11,7 @@ import investmentGame.actor.game.player.strategy.SelectOpponentStrategy;
 import madkit.kernel.Agent;
 import madkit.message.ActMessage;
 
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -56,7 +57,7 @@ public class Coordinator extends Agent{
 
                             boolean primaryPlayer = m.group(1).equals("primary");
                             String playersName = m.group(2);
-                            String picturePath = m.group(3);
+                            URI picturePath = URI.create(m.group(3).trim());
 
                             PlayerInterface modelPlayer = new CoordinatorsModelPlayer(game,playersName,picturePath);
 
@@ -144,7 +145,7 @@ public class Coordinator extends Agent{
                 new Thread(){
                     @Override
                     public void run() {
-                        player.joinGame(gameId,false,"---");
+                        player.joinGame(gameId,false,URI.create("---"));
                     }
                 }.start();
 

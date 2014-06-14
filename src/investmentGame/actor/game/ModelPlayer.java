@@ -5,6 +5,9 @@ import investmentGame.swing.RoundedPanel;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.logging.Level;
 
 /**
@@ -19,7 +22,7 @@ public class ModelPlayer<GameType extends Game> implements PlayerInterface {
     private GameType game;
 
     private String name;
-    private String picturePath;
+    private URI picturePath;
 
     private double creditBalance;
 
@@ -94,9 +97,16 @@ public class ModelPlayer<GameType extends Game> implements PlayerInterface {
         }
     }
 
-    public ModelPlayer(GameType game,String name, String picturePath) {
+    public ModelPlayer(GameType game,String name, URI picturePath) {
         this.game =  game;
         this.name = name;
+        if (picturePath == null){
+            try {
+                picturePath = getClass().getResource("/investmentGame/pictures/human.jpg").toURI();
+            } catch (URISyntaxException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            }
+        }
         this.picturePath = picturePath;
     }
 
@@ -139,7 +149,7 @@ public class ModelPlayer<GameType extends Game> implements PlayerInterface {
     }
 
     @Override
-    public String getPicturePath() {
+    public URI getPicturePath() {
         return picturePath;
     }
 
@@ -164,7 +174,11 @@ public class ModelPlayer<GameType extends Game> implements PlayerInterface {
     @Override
     public Image getScaledPicture(int width) {
         if (picture == null)
-            picture = new ImageIcon(getPicturePath()).getImage();
+            try {
+                picture = new ImageIcon(getPicturePath().toURL()).getImage();
+            } catch (MalformedURLException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            }
         return picture.getScaledInstance(width,-1,Image.SCALE_SMOOTH);
     }
 

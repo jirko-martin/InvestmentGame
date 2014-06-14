@@ -2,6 +2,8 @@ package investmentGame.actor.game.coordinator;
 
 import investmentGame.actor.game.ModelPlayer;
 
+import java.net.URI;
+
 /**
  * Created with IntelliJ IDEA.
  * User: martin
@@ -10,7 +12,7 @@ import investmentGame.actor.game.ModelPlayer;
  * To change this template use File | Settings | File Templates.
  */
 public class CoordinatorsModelPlayer extends ModelPlayer<CoordinatorsGame> {
-    public CoordinatorsModelPlayer(CoordinatorsGame game, String name, String picturePath) {
+    public CoordinatorsModelPlayer(CoordinatorsGame game, String name, URI picturePath) {
         super(game, name, picturePath);
     }
 }

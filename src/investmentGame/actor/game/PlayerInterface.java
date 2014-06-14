@@ -2,6 +2,7 @@ package investmentGame.actor.game;
 
 import javax.swing.*;
 import java.awt.*;
+import java.net.URI;
 
 /**
  * Created with IntelliJ IDEA.
@@ -18,7 +19,7 @@ public interface PlayerInterface{
 
     public String getPlayersName();
 
-    public String getPicturePath();
+    public URI getPicturePath();
 
     public String getStringDescription();
 

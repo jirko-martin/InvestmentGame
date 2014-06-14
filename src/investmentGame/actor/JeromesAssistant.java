@@ -13,6 +13,9 @@ import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.*;
 import java.util.List;
 import java.util.logging.Level;
@@ -38,15 +41,15 @@ public class JeromesAssistant extends Agent{
 
         public static abstract class PlayerSpecification{
 
-            private String pictureFileName;
+            protected URI pictureFileName;
             private String name;
 
-            public PlayerSpecification(String name, String pictureFileName){
+            public PlayerSpecification(String name, URI pictureFileName){
                 this.name = name;
                 this.pictureFileName = pictureFileName;
             }
 
-            public String getPictureFileName() {
+            public URI getPictureFileName() {
                 return pictureFileName;
             }
 
@@ -60,8 +63,15 @@ public class JeromesAssistant extends Agent{
             private ChooseAmountStrategy chooseAmountStrategy;
             private SelectOpponentStrategy selectOpponentStrategy;
 
-            public ComputerPlayerSpecification(String name, String pictureFileName,ChooseAmountStrategy chooseAmountStrategy, SelectOpponentStrategy selectOpponentStrategy){
+            public ComputerPlayerSpecification(String name, URI pictureFileName,ChooseAmountStrategy chooseAmountStrategy, SelectOpponentStrategy selectOpponentStrategy){
                 super(name,pictureFileName);
+                if (pictureFileName == null){
+                    try {
+                        this.pictureFileName = getClass().getResource(Configuration.DefaultPictures.computerPlayerPicture).toURI();
+                    } catch (URISyntaxException e) {
+                        e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                    }
+                }
                 this.chooseAmountStrategy = chooseAmountStrategy;
                 this.selectOpponentStrategy = selectOpponentStrategy;
             }
@@ -83,6 +93,12 @@ public class JeromesAssistant extends Agent{
 
             public HumanPlayerSpecification(String name) {
                 super(name,null);
+                try {
+                    pictureFileName = getClass().getResource(Configuration.DefaultPictures.humanPlayerPicture).toURI();
+                } catch (URISyntaxException e) {
+                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                }
+
             }
 
             public String toString(){
@@ -479,6 +495,8 @@ public class JeromesAssistant extends Agent{
                 @Override
                 public void actionPerformed(ActionEvent e) {
 
+                    setPictureFile(null);
+
                     final JDialog dialog = new JDialog(frame);
 
                     dialog.setTitle("Neuer Computer-Spieler");
@@ -504,7 +522,7 @@ public class JeromesAssistant extends Agent{
                         @Override
                         public void actionPerformed(ActionEvent e) {
 
-                            String picturePath = ((getPictureFile()!=null && getPictureFile().exists()) ? getPictureFile().getAbsolutePath() : null);
+                            URI picturePath = ((getPictureFile()!=null && getPictureFile().exists()) ? getPictureFile().toURI() : null);
 
                             getGameSpecification().addPlayerSpecification(new GameSpecification.ComputerPlayerSpecification(getName(),
                                                                                                                             picturePath, 
@@ -535,7 +553,23 @@ public class JeromesAssistant extends Agent{
                     final JPanel picturePreviewPane = new JPanel(new BorderLayout());
                     picturePreviewPane.setBackground(Color.WHITE);
 
-                    final JLabel pictureLabel = new JLabel("");
+                    final JLabel pictureLabel=new JLabel("");
+                    try {
+                        ImageIcon imageRaw = new ImageIcon(getClass().getResource(Configuration.DefaultPictures.computerPlayerPicture).toURI().toURL());
+                        Image scaledImage;
+                        if (imageRaw.getIconHeight()>imageRaw.getIconWidth()){
+                            scaledImage = imageRaw.getImage().getScaledInstance(-1,250,Image.SCALE_SMOOTH);
+                        }else{
+                            scaledImage = imageRaw.getImage().getScaledInstance(250,-1,Image.SCALE_SMOOTH);
+                        }
+                        pictureLabel.setIcon(new ImageIcon(scaledImage));
+                        pictureLabel.setHorizontalAlignment(JLabel.CENTER);
+                        pictureLabel.setVerticalAlignment(JLabel.CENTER);
+                    } catch (URISyntaxException e1) {
+                        e1.printStackTrace();
+                    } catch (MalformedURLException e1) {
+                        e1.printStackTrace();
+                    }
                     picturePreviewPane.add(pictureLabel,BorderLayout.CENTER);
 
                     picturePane.add(picturePreviewPane,BorderLayout.CENTER);

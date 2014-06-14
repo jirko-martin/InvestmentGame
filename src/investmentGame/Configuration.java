@@ -38,6 +38,14 @@ public class Configuration {
         public static long delayAcknowledgeInfoTransferMSecTurnB = 1500;
     }
 
+    public static class DefaultPictures{
+
+        public static String humanPlayerPicture = "/investmentGame/pictures/human.jpg";
+
+        public static String computerPlayerPicture = "/investmentGame/pictures/computer.jpg";
+
+    }
+
     public static final Class[] chooseAmountStrategies = {
 
             GaussianChooseAmountStrategy.class,
@@ -45,6 +53,7 @@ public class Configuration {
             TitForNWeightedTatsChooseAmountStrategy.class
 
     };
+
 
     public static final Class[] selectOpponentStrategies = {
 

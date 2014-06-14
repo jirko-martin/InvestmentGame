@@ -374,6 +374,13 @@ public class CoordinatorsGame extends Game {
                         game.getCoordinator().getLogger().log(Level.INFO,"\n\nAND THE WINNER IS ... "+playersRanked.get(0).getPlayersName()+" ("+playersRanked.get(0).getCreditBalance()+" credits)");
                         game.getCoordinator().getLogger().log(Level.INFO,"THE SECOND PRICE  ... "+playersRanked.get(1).getPlayersName()+" ("+playersRanked.get(1).getCreditBalance()+" credits)");
                         game.getCoordinator().broadcastMessageWithRole("investment_game", game.getGameId(), "player", new ActMessage("game_over"), "coordinator");
+
+                        KMeansPlayerGroups kMeans = new KMeansPlayerGroups(game.getPlayers(),2);
+                        FinalDisplay finalDisplay = new FinalDisplay(kMeans);
+                        finalDisplay.show();
+
+
+
                     }
 
                     @Override

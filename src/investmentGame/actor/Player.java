@@ -12,6 +12,7 @@ import madkit.message.ActMessage;
 
 import javax.swing.*;
 import java.awt.*;
+import java.net.URI;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -37,7 +38,7 @@ public abstract class Player extends Agent implements PlayerInterface {
         this("anonymous",null);
     }
 
-    public Player(String name,String picturePath){
+    public Player(String name, URI picturePath){
         this.model = new PlayersModelPlayer(null,name,picturePath);
         setName(name);
     }
@@ -70,7 +71,7 @@ public abstract class Player extends Agent implements PlayerInterface {
         }
     }
 
-    public void joinGame(String gameId, boolean asPrimaryPlayer, String picturePath){
+    public void joinGame(String gameId, boolean asPrimaryPlayer, URI picturePath){
         AgentAddress coordinator = findCoordinator(gameId);
 
         requestRole("investment_game",gameId,"player");
@@ -113,7 +114,7 @@ public abstract class Player extends Agent implements PlayerInterface {
     }
 
     @Override
-    public String getPicturePath() {
+    public URI getPicturePath() {
         return this.model.getPicturePath();
     }
 

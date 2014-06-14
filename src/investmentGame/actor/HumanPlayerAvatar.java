@@ -45,7 +45,7 @@ public class HumanPlayerAvatar extends Player {
         private int inTurn = 0;
 
         public GUI(){
-            playersName = getPicturePath()!=null ? new JLabel(getPlayersName(),new ImageIcon(getScaledPicture(150)),JLabel.LEFT) : new JLabel(getPlayersName());
+            playersName = false && getPicturePath()!=null ? new JLabel(getPlayersName(),new ImageIcon(getScaledPicture(150)),JLabel.LEFT) : new JLabel(getPlayersName());
             creditBalance = new JLabel(""+getCreditBalance());
             creditBalance.setFont(new Font(Font.SANS_SERIF, Font.ITALIC, 20));
             creditBalance.setForeground(Color.BLUE);
@@ -83,13 +83,18 @@ public class HumanPlayerAvatar extends Player {
 
                 panel.add(accountPanel,BorderLayout.SOUTH);
 
+                JPanel bottomPanel = new JPanel(new BorderLayout());
+
                 controlPanel = new JPanel(new BorderLayout());
 
                 controlPanel.setPreferredSize(new Dimension(210,120));
 
                 controlPanel.setBackground(Color.WHITE);
 
-                panel.add(controlPanel,BorderLayout.CENTER);
+                bottomPanel.add(new JLabel(new ImageIcon(getScaledPicture(110))),BorderLayout.WEST);
+                bottomPanel.add(controlPanel, BorderLayout.CENTER);
+
+                panel.add(/*controlPanel*/bottomPanel,BorderLayout.CENTER);
             }
 
             return panel;

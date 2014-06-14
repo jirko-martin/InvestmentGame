@@ -10,6 +10,7 @@ import madkit.message.ActMessage;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
+import java.net.URI;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
@@ -345,7 +346,7 @@ public class PlayersGame extends Game {
                                 Matcher m = playerInfoPattern.matcher(playerInfos[i]);
                                 if (m.matches()){
                                     game.getPlayersSelf().getLogger().log(Level.INFO,"  --->  PLAYER "+game.getPlayersSelf().getPlayersName()+" add model player "+m.group(1)+" / "+m.group(3));
-                                    ModelPlayer player = new PlayersModelPlayer(game,m.group(1),m.group(3));
+                                    ModelPlayer player = new PlayersModelPlayer(game,m.group(1), URI.create(m.group(3)));
                                     game.addPlayer(player);
                                     game.getPlayer(m.group(1)).setCreditBalance(Double.parseDouble(m.group(2)));
                                 }

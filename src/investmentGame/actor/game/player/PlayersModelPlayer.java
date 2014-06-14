@@ -7,6 +7,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.net.URI;
 
 /**
  * Created with IntelliJ IDEA.
@@ -17,7 +18,7 @@ import java.awt.event.MouseEvent;
  */
 public class PlayersModelPlayer extends ModelPlayer<PlayersGame> {
 
-    public PlayersModelPlayer(PlayersGame game, String name, String picturePath) {
+    public PlayersModelPlayer(PlayersGame game, String name, URI picturePath) {
         super(game, name, picturePath);
     }
 

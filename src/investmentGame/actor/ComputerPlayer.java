@@ -7,6 +7,8 @@ import investmentGame.actor.game.player.strategy.ChooseAmountStrategy;
 import investmentGame.actor.game.player.strategy.SelectOpponentStrategy;
 import madkit.message.ActMessage;
 
+import java.net.URI;
+
 /**
  * Created with IntelliJ IDEA.
  * User: martin
@@ -21,7 +23,7 @@ public class ComputerPlayer extends Player {
 
     public static int instanceCounter = 0;
 
-    public ComputerPlayer(String name, String picturePath,ChooseAmountStrategy chooseAmountStrategy, SelectOpponentStrategy selectOpponentStrategy){
+    public ComputerPlayer(String name, URI picturePath,ChooseAmountStrategy chooseAmountStrategy, SelectOpponentStrategy selectOpponentStrategy){
         super(name,picturePath);
         this.chooseAmountStrategy = chooseAmountStrategy;
         this.selectOpponentStrategy = selectOpponentStrategy;
